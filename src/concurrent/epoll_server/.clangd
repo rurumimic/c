@@ -2,9 +2,11 @@ CompileFlags:
   Add:
     - -std=c99
     - -Ibuild
+    - -Isrc
 Diagnostics:
   ClangTidy:
     Add: 
       - modernize-*
       - clang-analyzer-*
+      - linuxkernel-*
 
