@@ -1,25 +1,30 @@
 #include <stdio.h>
 
-typedef enum {
-    HELLO,
-    WORLD,
-    END,
+typedef enum
+{
+  HELLO,
+  WORLD,
+  END,
 } hello_state;
 
-typedef struct {
-    hello_state state;
+typedef struct
+{
+  hello_state state;
 } hello;
 
-#define INIT_HELLO()                                                           \
-    {                                                                          \
-        .state = HELLO,                                                        \
-    };
+#define INIT_HELLO()                                                          \
+  {                                                                           \
+    .state = HELLO,                                                           \
+  };
 
-int main(int argc, char *argv[]) {
+int
+main (int argc, char *argv[])
+{
 
-    hello h = INIT_HELLO();
+  hello h = INIT_HELLO ();
 
-    printf("Hello state: %d\n", h.state);
+  printf ("Hello state: %d\n", h.state);
 
-    return 0;
+  return 0;
 }
+
