@@ -38,3 +38,9 @@ make
 telnet localhost 10000
 ```
 
+---
+
+## Clang Format
+
+- torvalds/linux: [.clang-format](https://github.com/torvalds/linux/blob/master/.clang-format)
+

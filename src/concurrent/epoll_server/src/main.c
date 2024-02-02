@@ -1,30 +1,16 @@
-#include <stdio.h>
+#include <stdlib.h>
 
-typedef enum
+#include "hello.h"
+#include "future.h"
+
+int main(int argc, char *argv[])
 {
-  HELLO,
-  WORLD,
-  END,
-} hello_state;
+	hello *h = malloc(sizeof(hello));
+	h->state = HELLO;
 
-typedef struct
-{
-  hello_state state;
-} hello;
+	poll(h);
+	poll(h);
+	poll(h);
 
-#define INIT_HELLO()                                                          \
-  {                                                                           \
-    .state = HELLO,                                                           \
-  };
-
-int
-main (int argc, char *argv[])
-{
-
-  hello h = INIT_HELLO ();
-
-  printf ("Hello state: %d\n", h.state);
-
-  return 0;
+	return 0;
 }
-
