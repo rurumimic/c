@@ -8,6 +8,12 @@ It is a simple implementation of a server that can handle multiple clients concu
 ## Build
 
 ```bash
+source BUILD
+```
+
+### Manual Build
+
+```bash
 autoreconf -i
 mkdir build
 cd build
@@ -15,7 +21,7 @@ cd build
 make
 ```
 
-### Clean
+### Clean Build
 
 ```bash
 cd build

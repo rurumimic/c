@@ -7,13 +7,11 @@ enum hello_state {
 	END,
 };
 
-typedef struct {
+struct hello {
 	enum hello_state state;
-} hello;
+};
 
-#define INIT_HELLO()            \
-	{                       \
-		.state = HELLO, \
-	};
+struct hello *init_hello(void);
+void free_hello(struct hello *hello);
 
 #endif // _HELLO_H

@@ -1,4 +1,8 @@
 bin_PROGRAMS = server
 
-server_SOURCES = src/main.c src/future.c
+server_SOURCES = \
+	src/main.c \
+	src/future.c \
+	src/hello.c \
+	src/task.c
 

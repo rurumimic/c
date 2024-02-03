@@ -1,16 +1,15 @@
-#include <stdlib.h>
-
-#include "hello.h"
 #include "future.h"
+#include "task.h"
 
 int main(int argc, char *argv[])
 {
-	hello *h = malloc(sizeof(hello));
-	h->state = HELLO;
+	struct task *t = init_task();
 
-	poll(h);
-	poll(h);
-	poll(h);
+	while (poll(t->hello) != POLL_READY) {
+		/* do nothing */
+	}
+
+	free_task(t);
 
 	return 0;
 }

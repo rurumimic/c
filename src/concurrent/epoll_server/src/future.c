@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-enum poll_state poll(hello *hello)
+enum poll_state poll(struct hello *hello)
 {
 	switch (hello->state) {
 	case HELLO:
