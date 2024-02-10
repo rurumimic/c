@@ -47,6 +47,7 @@ void executor_run(struct executor *e)
 		}
 
 		enum poll_state state = poll(t);
+
 		if (state == POLL_READY) {
 			task_free((void *)t);
 		}

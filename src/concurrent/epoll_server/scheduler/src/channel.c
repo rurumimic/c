@@ -6,7 +6,8 @@
 struct channel *channel_init(void)
 {
 	struct channel *c = malloc(sizeof(struct channel));
-	if (c == NULL) {
+
+	if (!c) {
 		perror("channel_init: malloc failed to allocate channel");
 		exit(EXIT_FAILURE);
 	}
@@ -50,7 +51,8 @@ void channel_send(struct channel *c, size_t size, void *data,
 	}
 
 	struct channel_node *node = malloc(sizeof(struct channel_node));
-	if (node == NULL) {
+
+	if (!node) {
 		perror("malloc failed in channel_send");
 		exit(EXIT_FAILURE);
 	}
@@ -108,10 +110,13 @@ void channel_free(struct channel *c)
 
 	while (node) {
 		struct channel_node *next = node->next;
+
 		if (node->data) {
 			node->free(node->data);
 		}
+
 		free(node);
+
 		node = next;
 	}
 
