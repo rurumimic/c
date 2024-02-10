@@ -26,17 +26,9 @@ make distclean
 
 ## Run
 
-### Server
-
 ```bash
 make
-./server
-```
-
-### Client
-
-```bash
-telnet localhost 10000
+./state_machine
 ```
 
 ---

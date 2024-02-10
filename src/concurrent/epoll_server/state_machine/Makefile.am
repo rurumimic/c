@@ -1,4 +1,4 @@
-bin_PROGRAMS = server
+bin_PROGRAMS = state_machine
 
 server_SOURCES = \
 	src/main.c \

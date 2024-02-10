@@ -1,4 +1,4 @@
-AC_INIT([server], [0.1])
+AC_INIT([state_machine], [0.1])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror subdir-objects])
 
 AC_PROG_CC
