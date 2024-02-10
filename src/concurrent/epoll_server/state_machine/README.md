@@ -1,9 +1,4 @@
-# Epoll Server
-
-## Introduction
-
-This is a simple epoll server that can handle multiple clients concurrently.  
-It is a simple implementation of a server that can handle multiple clients concurrently using epoll.
+# State Machine with coroutines
 
 ## Build
 
