@@ -1,6 +1,6 @@
 bin_PROGRAMS = state_machine
 
-server_SOURCES = \
+state_machine_SOURCES = \
 	src/main.c \
 	src/future.c \
 	src/hello.c \

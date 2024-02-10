@@ -10,10 +10,21 @@ source BUILD
 
 ```bash
 autoreconf -i
+```
+
+```bash
 mkdir build
 cd build
+```
+
+```bash
 ../configure
+```
+
+```bash
 make
+# or
+bear -- make
 ```
 
 ### Clean Build
@@ -27,8 +38,7 @@ make distclean
 ## Run
 
 ```bash
-make
-./state_machine
+./build/state_machine
 ```
 
 ---
