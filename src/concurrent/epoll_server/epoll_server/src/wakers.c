@@ -13,7 +13,7 @@ struct wakers *wakers_init(size_t capacity)
 	struct wakers *wakers = (struct wakers *)malloc(sizeof(struct wakers));
 
 	if (!wakers) {
-		perror("wakers_init: malloc failed to allocate waekers");
+		perror("wakers_init: malloc failed to allocate wakers");
 		exit(EXIT_FAILURE);
 	}
 
@@ -155,7 +155,7 @@ void wakers_free(struct wakers *w)
 
 	struct wakers_node *node = w->nodes;
 
-	for (size_t i = 0; i < w->length; i++) {
+	for (size_t i = 0; i < w->capacity; i++) {
 		if (node->data) {
 			node->free(node->data);
 		}
