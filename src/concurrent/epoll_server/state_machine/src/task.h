@@ -3,11 +3,14 @@
 
 #include "hello.h"
 
+#include <pthread.h>
+
 struct task {
 	struct hello *hello;
+  pthread_mutex_t mutex;
 };
 
-struct task *init_task(void);
-void free_task(struct task *task);
+struct task *task_init(void);
+void task_free(struct task *t);
 
 #endif // _TASK_H

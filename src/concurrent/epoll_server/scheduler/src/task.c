@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 struct task *task_init(struct hello *h, struct channel *c)
 {
@@ -26,6 +27,7 @@ struct task *task_init(struct hello *h, struct channel *c)
 
 	t->hello = h;
 	t->channel = c;
+	pthread_mutex_init(&t->mutex, NULL);
 
 	return t;
 }
@@ -52,6 +54,8 @@ void task_free(void *p)
 	if (t->hello) {
 		hello_free(t->hello);
 	}
+
+	pthread_mutex_destroy(&t->mutex);
 
 	free(t);
 }

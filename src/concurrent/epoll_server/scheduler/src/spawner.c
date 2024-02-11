@@ -6,8 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct spawner *spawner_init(struct channel *channel)
+struct spawner *spawner_init(struct channel *c)
 {
+	if (!c) {
+		perror("spawner_init: channel is NULL");
+		return NULL;
+	}
+
 	struct spawner *s = (struct spawner *)malloc(sizeof(struct spawner));
 
 	if (!s) {
@@ -15,7 +20,7 @@ struct spawner *spawner_init(struct channel *channel)
 		exit(EXIT_FAILURE);
 	}
 
-	s->channel = channel;
+	s->channel = c;
 
 	return s;
 }

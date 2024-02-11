@@ -4,9 +4,12 @@
 #include "hello.h"
 #include "channel.h"
 
+#include <pthread.h>
+
 struct task {
 	struct hello *hello;
 	struct channel *channel;
+	pthread_mutex_t mutex;
 };
 
 struct task *task_init(struct hello *h, struct channel *c);

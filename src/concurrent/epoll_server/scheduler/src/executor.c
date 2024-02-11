@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 struct executor *executor_init(void)
 {
@@ -13,7 +14,7 @@ struct executor *executor_init(void)
 
 	if (!e) {
 		perror("executor_init: malloc failed to allocate executor");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	e->channel = channel_init();
@@ -46,7 +47,11 @@ void executor_run(struct executor *e)
 			exit(EXIT_FAILURE);
 		}
 
+		pthread_mutex_lock(&t->mutex);
+
 		enum poll_state state = poll(t);
+
+		pthread_mutex_unlock(&t->mutex);
 
 		if (state == POLL_READY) {
 			task_free((void *)t);

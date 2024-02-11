@@ -1,7 +1,6 @@
 #ifndef _FUTURE_H
 #define _FUTURE_H
 
-// #include "hello.h"
 #include "task.h"
 
 enum poll_state {

@@ -8,6 +8,6 @@ enum poll_state {
 	POLL_READY,
 };
 
-enum poll_state poll(struct hello *hello);
+enum poll_state poll(struct hello *h);
 
 #endif // _FUTURE_H

@@ -1,21 +1,37 @@
 #include "task.h"
 #include "hello.h"
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
-struct task *init_task(void)
+struct task *task_init(void)
 {
 	struct task *t = (struct task *)malloc(sizeof(struct task));
-	t->hello = init_hello();
+
+	if (!t) {
+		perror("task_init: malloc failed to allocate task");
+		exit(EXIT_FAILURE);
+	}
+
+	t->hello = hello_init();
+  pthread_mutex_init(&t->mutex, NULL);
+
 	return t;
 }
 
-void free_task(struct task *t)
+void task_free(struct task *t)
 {
-	if (t) {
-		if (t->hello) {
-			free_hello(t->hello);
-		}
-		free(t);
+	if (!t) {
+		perror("task_free: task is NULL");
+		return;
 	}
+
+	if (t->hello) {
+		hello_free(t->hello);
+	}
+
+  pthread_mutex_destroy(&t->mutex);
+
+	free(t);
 }

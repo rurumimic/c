@@ -11,7 +11,7 @@ struct hello {
 	enum hello_state state;
 };
 
-struct hello *init_hello(void);
-void free_hello(struct hello *hello);
+struct hello *hello_init(void);
+void hello_free(struct hello *h);
 
 #endif // _HELLO_H

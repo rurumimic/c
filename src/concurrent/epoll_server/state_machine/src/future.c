@@ -2,18 +2,24 @@
 
 #include <stdio.h>
 
-enum poll_state poll(struct hello *hello)
+enum poll_state poll(struct hello *h)
 {
-	switch (hello->state) {
+	if (!h) {
+		perror("poll: hello is NULL");
+		return POLL_READY;
+	}
+
+	switch (h->state) {
 	case HELLO:
 		printf("Hello, ");
-		hello->state = WORLD;
+		h->state = WORLD;
 		return POLL_PENDING;
 	case WORLD:
-		printf("World!\n");
-		hello->state = END;
+		printf("World!");
+		h->state = END;
 		return POLL_PENDING;
 	default:
+		printf("\n");
 		return POLL_READY;
 	}
 }
