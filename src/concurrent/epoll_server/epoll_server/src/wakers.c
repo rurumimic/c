@@ -20,7 +20,7 @@ struct wakers *wakers_init(size_t capacity)
 	wakers->capacity = capacity;
 	wakers->length = 0;
 	wakers->nodes = (struct wakers_node *)malloc(
-		sizeof(struct wakers_node) * capacity);
+		capacity * sizeof(struct wakers_node));
 
 	if (!wakers->nodes) {
 		perror("wakers_init: malloc failed to allocate wakers->nodes");
