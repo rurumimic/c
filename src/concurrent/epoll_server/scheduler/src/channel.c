@@ -5,7 +5,7 @@
 
 struct channel *channel_init(void)
 {
-	struct channel *c = malloc(sizeof(struct channel));
+	struct channel *c = (struct channel *)malloc(sizeof(struct channel));
 
 	if (!c) {
 		perror("channel_init: malloc failed to allocate channel");
