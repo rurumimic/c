@@ -42,16 +42,14 @@ void *channel_peek(struct channel *c)
 	return c->front->data;
 }
 
-void channel_send(struct channel *c, size_t size, void *data,
-		  void (*free)(void *data))
+void channel_send(struct channel *c, size_t size, void *data, void (*free)(void *data))
 {
 	if (!c) {
 		perror("channel_send: channel is NULL");
 		return;
 	}
 
-	struct channel_node *node =
-		(struct channel_node *)malloc(sizeof(struct channel_node));
+	struct channel_node *node = (struct channel_node *)malloc(sizeof(struct channel_node));
 
 	if (!node) {
 		perror("malloc failed in channel_send");

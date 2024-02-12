@@ -30,6 +30,38 @@ struct wakers *wakers_init(size_t capacity)
 	return wakers;
 }
 
+struct waker *waker_init(void *data, void (*free)(void *),
+			 void (*wake_by_ref)(void *))
+{
+	if (!data) {
+		perror("waker_init: data is NULL");
+		return NULL;
+	}
+
+	if (!free) {
+		perror("waker_init: free is NULL");
+		return NULL;
+	}
+
+	if (!wake_by_ref) {
+		perror("waker_init: wake_by_ref is NULL");
+		return NULL;
+	}
+
+	struct waker *waker = (struct waker *)malloc(sizeof(struct waker));
+
+	if (!waker) {
+		perror("waker_init: malloc failed to allocate waker");
+		exit(EXIT_FAILURE);
+	}
+
+	waker->data = data;
+	waker->free = free;
+	waker->wake_by_ref = wake_by_ref;
+
+	return waker;
+}
+
 int wakers_hash_function(int key, size_t capacity)
 {
 	if (capacity == 0) {
@@ -40,8 +72,7 @@ int wakers_hash_function(int key, size_t capacity)
 	return key % capacity;
 }
 
-int wakers_insert(struct wakers *w, int key, void *data,
-		  void (*free)(void *data))
+int wakers_insert(struct wakers *w, int key, struct waker *waker)
 {
 	if (!w) {
 		perror("wakers_insert: wakers is NULL");
@@ -69,8 +100,8 @@ int wakers_insert(struct wakers *w, int key, void *data,
 		    node->state == WAKERS_NODE_DELETED) {
 			node->state = WAKERS_NODE_USED;
 			node->key = key;
-			node->data = data;
-			node->free = free;
+			node->waker = waker;
+
 			w->length++;
 			return 1;
 		}
@@ -122,7 +153,7 @@ struct wakers_node *wakers_find(struct wakers *w, int key)
 	return NULL;
 }
 
-void *wakers_remove(struct wakers *w, int key)
+struct waker *wakers_remove(struct wakers *w, int key)
 {
 	if (!w) {
 		perror("wakers_remove: wakers is NULL");
@@ -134,16 +165,30 @@ void *wakers_remove(struct wakers *w, int key)
 		return NULL;
 	}
 
-	void *data = node->data;
+	struct waker *waker = node->waker;
 
 	node->state = WAKERS_NODE_DELETED;
 	node->key = -1;
-	node->data = NULL;
-	node->free = NULL;
+	node->waker = NULL;
 
 	w->length--;
 
-	return data;
+	return waker;
+}
+
+void waker_free(struct waker *w)
+{
+	if (!w) {
+		return;
+	}
+
+	if (w->data) {
+		if (w->free) {
+			w->free(w->data);
+		}
+	}
+
+	free(w);
 }
 
 void wakers_free(struct wakers *w)
@@ -156,9 +201,7 @@ void wakers_free(struct wakers *w)
 	struct wakers_node *node = w->nodes;
 
 	for (size_t i = 0; i < w->capacity; i++) {
-		if (node->data) {
-			node->free(node->data);
-		}
+		waker_free(node->waker);
 		node++;
 	}
 
