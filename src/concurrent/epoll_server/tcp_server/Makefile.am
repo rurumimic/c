@@ -1,5 +1,5 @@
-bin_PROGRAMS = server
+bin_PROGRAMS = nonblock_server
 
-server_SOURCES = \
+nonblock_server_SOURCES = \
 	src/main.c
 

@@ -1,4 +1,4 @@
-# TCP Server
+# NonBlock TCP Server
 
 ## Build
 
@@ -40,13 +40,30 @@ make distclean
 ### Server
 
 ```bash
-./build/server
+./build/nonblock_server
+```
+
+```bash
+Connected: (1/3)
+Bye.
+Connected: (2/3)
+Bye.
+Connected: (3/3)
+Bye.
 ```
 
 ### Client
 
 ```bash
 telnet localhost 9000
+```
+
+```bash
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+Hello! (1/3)
+Connection closed by foreign host.
 ```
 
 ---
