@@ -1,21 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
 #include "executor.h"
 #include "spawner.h"
-#include "hello.h"
+#include "future.h"
+#include "server.h"
 #include "wakers.h"
+#include "async_listener.h"
+#include "io_selector.h"
 
 int main(int argc, char *argv[])
 {
-	struct wakers *w = wakers_init(3);
+	struct executor *e = executor_init();
 
-	if (!w) {
-		perror("main: failed to initialize wakers");
-		return EXIT_FAILURE;
-	}
+	struct io_selector *selector = io_selector_init(10);
+	pthread_t tid = io_selector_spawn(selector);
 
-	wakers_free(w);
+	struct spawner *spawner1 = executor_get_spawner(e);
+	struct spawner *spawner2 = executor_get_spawner(e);
+
+	spawner_spawn(spawner2, server_init(10000, selector, spawner1));
+	executor_run(e);
 
 	return EXIT_SUCCESS;
 }

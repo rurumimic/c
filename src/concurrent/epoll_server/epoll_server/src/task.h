@@ -1,18 +1,18 @@
 #ifndef _TASK_H
 #define _TASK_H
 
-#include "hello.h"
+#include "future.h"
 #include "channel.h"
 
 #include <pthread.h>
 
 struct task {
-	struct hello *hello;
+	struct future *future;
 	struct channel *channel;
-	pthread_mutex_t mutex;
+	pthread_mutex_t future_mutex;
 };
 
-struct task *task_init(struct hello *h, struct channel *c);
+struct task *task_init(struct future *f, struct channel *c);
 void task_wake_by_ref(struct task *t);
 void task_free(void *p);
 

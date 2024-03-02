@@ -1,15 +1,15 @@
 #include "task.h"
-#include "hello.h"
+#include "future.h"
 #include "channel.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
-struct task *task_init(struct hello *h, struct channel *c)
+struct task *task_init(struct future *f, struct channel *c)
 {
-	if (!h) {
-		perror("task_init: hello is NULL");
+	if (!f) {
+		perror("task_init: future is NULL");
 		return NULL;
 	}
 
@@ -25,9 +25,9 @@ struct task *task_init(struct hello *h, struct channel *c)
 		exit(EXIT_FAILURE);
 	}
 
-	t->hello = h;
+	t->future = f;
 	t->channel = c;
-	pthread_mutex_init(&t->mutex, NULL);
+	pthread_mutex_init(&t->future_mutex, NULL);
 
 	return t;
 }
@@ -51,11 +51,12 @@ void task_free(void *p)
 
 	struct task *t = (struct task *)p;
 
-	if (t->hello) {
-		hello_free(t->hello);
+	if (t->future) {
+    // TODO: future free
+		free(t->future);
 	}
 
-	pthread_mutex_destroy(&t->mutex);
+	pthread_mutex_destroy(&t->future_mutex);
 
 	free(t);
 }

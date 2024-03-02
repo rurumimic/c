@@ -1,6 +1,6 @@
 #include "spawner.h"
 #include "task.h"
-#include "hello.h"
+#include "future.h"
 #include "channel.h"
 
 #include <stdio.h>
@@ -25,19 +25,19 @@ struct spawner *spawner_init(struct channel *c)
 	return s;
 }
 
-void spawner_spawn(struct spawner *s, struct hello *h)
+void spawner_spawn(struct spawner *s, struct future *f)
 {
 	if (!s) {
 		perror("spawner_spawn: spawner is NULL");
 		return;
 	}
 
-	if (!h) {
-		perror("spawner_spawn: hello is NULL");
+	if (!f) {
+		perror("spawner_spawn: future is NULL");
 		return;
 	}
 
-	struct task *t = task_init(h, s->channel);
+	struct task *t = task_init(f, s->channel);
 
 	channel_send(s->channel, sizeof(struct task), t, task_free);
 }

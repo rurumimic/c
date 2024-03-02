@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "task.h"
+
 enum wakers_node_state {
 	WAKERS_NODE_EMPTY,
 	WAKERS_NODE_USED,
@@ -10,9 +12,7 @@ enum wakers_node_state {
 };
 
 struct waker {
-  void *data;
-	void (*free)(void *data);
-  void (*wake_by_ref)(void *data);
+  struct task *task;
 };
 
 struct wakers_node {
@@ -28,7 +28,7 @@ struct wakers {
 };
 
 struct wakers *wakers_init(size_t capacity);
-struct waker *waker_init(void *data, void (*free)(void *), void (*wake_by_ref)(void *));
+struct waker *waker_init(struct task *task);
 int wakers_insert(struct wakers *w, int key, struct waker *waker);
 struct wakers_node *wakers_find(struct wakers *w, int key);
 struct waker *wakers_remove(struct wakers *w, int key);

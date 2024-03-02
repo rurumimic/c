@@ -3,6 +3,8 @@
 ## Build
 
 ```bash
+export CC=clang
+export CFLAGS="-g"
 source BUILD
 ```
 

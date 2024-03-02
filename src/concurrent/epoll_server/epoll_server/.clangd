@@ -7,5 +7,4 @@ Diagnostics:
     Add: 
       - modernize-*
       - clang-analyzer-*
-      - linuxkernel-*
 

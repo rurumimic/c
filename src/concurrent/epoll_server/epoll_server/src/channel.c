@@ -3,121 +3,117 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct channel *channel_init(void)
-{
-	struct channel *c = (struct channel *)malloc(sizeof(struct channel));
+struct channel *channel_init(void) {
+    struct channel *c = (struct channel *)malloc(sizeof(struct channel));
 
-	if (!c) {
-		perror("channel_init: malloc failed to allocate channel");
-		exit(EXIT_FAILURE);
-	}
+    if (!c) {
+        perror("channel_init: malloc failed to allocate channel");
+        exit(EXIT_FAILURE);
+    }
 
-	c->front = NULL;
-	c->rear = NULL;
-	c->length = 0;
+    c->front = NULL;
+    c->rear = NULL;
+    c->length = 0;
 
-	return c;
+    return c;
 }
 
-int channel_is_empty(struct channel *c)
-{
-	if (!c) {
-		perror("channel_is_empty: channel is NULL");
-		return 1;
-	}
+int channel_is_empty(struct channel *c) {
+    if (!c) {
+        perror("channel_is_empty: channel is NULL");
+        return 1;
+    }
 
-	return c->length == 0;
+    return c->length == 0;
 }
 
-void *channel_peek(struct channel *c)
-{
-	if (!c) {
-		return NULL;
-	}
+void *channel_peek(struct channel *c) {
+    if (!c) {
+        return NULL;
+    }
 
-	if (!c->front) {
-		return NULL;
-	}
+    if (!c->front) {
+        return NULL;
+    }
 
-	return c->front->data;
+    return c->front->data;
 }
 
-void channel_send(struct channel *c, size_t size, void *data, void (*free)(void *data))
-{
-	if (!c) {
-		perror("channel_send: channel is NULL");
-		return;
-	}
+void channel_send(struct channel *c, size_t size, void *data,
+                  void (*free)(void *data)) {
+    if (!c) {
+        perror("channel_send: channel is NULL");
+        return;
+    }
 
-	struct channel_node *node = (struct channel_node *)malloc(sizeof(struct channel_node));
+    struct channel_node *node =
+        (struct channel_node *)malloc(sizeof(struct channel_node));
 
-	if (!node) {
-		perror("malloc failed in channel_send");
-		exit(EXIT_FAILURE);
-	}
+    if (!node) {
+        perror("malloc failed in channel_send");
+        exit(EXIT_FAILURE);
+    }
 
-	node->size = size;
-	node->data = data;
-	node->free = free;
-	node->next = NULL;
+    node->size = size;
+    node->data = data;
+    node->free = free;
+    node->next = NULL;
 
-	if (c->front) {
-		c->rear->next = node;
-		c->rear = node;
-	} else {
-		c->front = node;
-		c->rear = node;
-	}
+    if (c->front) {
+        c->rear->next = node;
+        c->rear = node;
+    } else {
+        c->front = node;
+        c->rear = node;
+    }
 
-	c->length++;
+    c->length++;
 }
 
-void *channel_recv(struct channel *c)
-{
-	if (!c) {
-		perror("channel_recv: channel is NULL");
-		return NULL;
-	}
+void *channel_recv(struct channel *c) {
+    if (!c) {
+        perror("channel_recv: channel is NULL");
+        return NULL;
+    }
 
-	struct channel_node *node = c->front;
+    struct channel_node *node = c->front;
 
-	if (!node) {
-		return NULL;
-	}
+    if (!node) {
+        return NULL;
+    }
 
-	void *data = node->data;
-	c->front = node->next;
-	c->length--;
+    void *data = node->data;
+    c->front = node->next;
+    c->length--;
 
-	if (!c->front) {
-		c->rear = NULL;
-	}
+    if (!c->front) {
+        c->rear = NULL;
+    }
 
-	free(node);
+    free(node);
 
-	return data;
+    return data;
 }
 
-void channel_free(struct channel *c)
-{
-	if (!c) {
-		perror("channel_free: channel is NULL");
-		return;
-	}
+void channel_free(struct channel *c) {
+    if (!c) {
+        perror("channel_free: channel is NULL");
+        return;
+    }
 
-	struct channel_node *node = c->front;
+    struct channel_node *node = c->front;
 
-	while (node) {
-		struct channel_node *next = node->next;
+    while (node) {
+        struct channel_node *next = node->next;
 
-		if (node->data) {
-			node->free(node->data);
-		}
+        if (node->data) {
+            node->free(node->data);
+        }
 
-		free(node);
+        free(node);
 
-		node = next;
-	}
+        node = next;
+    }
 
-	free(c);
+    free(c);
 }
