@@ -66,6 +66,8 @@ void channel_send(struct channel *c, struct task *task) {
     }
 
     c->length++;
+
+    // printf("channel_send: task: %p, future: %p, poll: %p\n", task, task->future, task->future->poll);
 }
 
 struct task *channel_recv(struct channel *c) {
@@ -81,6 +83,7 @@ struct task *channel_recv(struct channel *c) {
     }
 
     struct task *task = node->task;
+
     c->front = node->next;
     c->length--;
 
@@ -89,6 +92,8 @@ struct task *channel_recv(struct channel *c) {
     }
 
     free(node);
+
+    // printf("channel_recv: task: %p, future: %p, poll: %p\n", task, task->future, task->future->poll);
 
     return task;
 }

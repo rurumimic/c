@@ -29,6 +29,8 @@ struct task *task_init(struct future *f, struct channel *c)
 	t->channel = c;
 	pthread_mutex_init(&t->future_mutex, NULL);
 
+  // printf("task_init: t: %p, f: %p, poll: %p\n", t, t->future, t->future->poll);
+
 	return t;
 }
 
@@ -39,6 +41,7 @@ void task_wake_by_ref(struct task *t)
 		return;
 	}
 
+  // printf("task_wake_by_ref: t: %p, f: %p, poll: %p\n", t, t->future, t->future->poll);
 	channel_send(t->channel, t);
 }
 

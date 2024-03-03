@@ -54,12 +54,11 @@ void executor_run(struct executor *e) {
             exit(1);
         }
 
+        printf("exectuor_run: poll t: %p, f: %p, poll: %p\n", t, t->future, t->future->poll);
+
         pthread_mutex_lock(&t->future_mutex);
 
-        printf("t: %p\n", t);
-
         enum poll_state state = t->future->poll(t->future, e->channel);
-        // enum poll_state state = t->future->poll(t->future, e->channel);
 
         pthread_mutex_unlock(&t->future_mutex);
 
@@ -69,8 +68,9 @@ void executor_run(struct executor *e) {
         // }
         //
         // if (state == POLL_READY && t->future->state == FUTURE_STOPPED) {
-        //     task_free(t);
-        // }
+        if (state == POLL_READY) {
+            task_free(t);
+        }
   }
 
   printf("executor loop end\n");

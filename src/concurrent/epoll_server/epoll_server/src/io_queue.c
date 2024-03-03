@@ -53,6 +53,8 @@ void io_queue_send(struct io_queue *q, struct io_ops *ops) {
     }
 
     q->length++;
+
+    // printf("io_queue_send: type: %d, fd: %d, task: %p\n", ops->type, ops->fd, ops->task);
 }
 
 struct io_ops *io_queue_recv(struct io_queue *q) {
@@ -77,6 +79,8 @@ struct io_ops *io_queue_recv(struct io_queue *q) {
     }
 
     free(node);
+
+    // printf("io_queue_recv: type: %d, fd: %d, task: %p\n", ops->type, ops->fd, ops->task);
 
     return ops;
 }

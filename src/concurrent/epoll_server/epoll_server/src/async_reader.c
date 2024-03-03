@@ -37,6 +37,8 @@ struct async_reader *async_reader_init(int cfd, struct io_selector *selector)
   r->cfd = cfd;
   r->selector = selector;
 
+  printf("async_reader_init: cfd: %d\n", cfd);
+
   return r;
 }
 
@@ -63,7 +65,7 @@ struct future *async_reader_readline(struct future *echo, struct async_reader *r
   f->poll = async_reader_poll;
   f->data = data;
 
-  printf("async_reader_readline: future initialized\n");
+  // printf("async_reader_readline: f: %p\n", f);
 
   return f;
 }

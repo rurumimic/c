@@ -58,6 +58,8 @@ struct async_listener *async_listener_init(int port, struct io_selector *selecto
   listener->sfd = sfd;
   listener->selector = selector;
 
+  // printf("async_listener_init: %d\n", sfd);
+
   return listener;
 }
 

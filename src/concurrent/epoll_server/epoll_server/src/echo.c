@@ -3,14 +3,12 @@
 #include "async_reader.h"
 #include "future.h"
 
-#include "task.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 
-struct future *echo_init(struct async_listener *listener, struct async_reader *reader, int cfd) {
-  printf("echo");
+struct future *echo_init(struct async_listener *listener, struct future *accept, struct async_reader *reader, int cfd) {
   struct future *f = (struct future *)malloc(sizeof(struct future));
 
   if (!f) {
@@ -22,21 +20,24 @@ struct future *echo_init(struct async_listener *listener, struct async_reader *r
   data->listener = listener;
   data->reader = reader;
   data->cfd = cfd;
-  data->readline = NULL;
+  data->accept = accept;
+  data->readline = NULL; // init in echo_poll - async_reader_readline
 
   f->state = FUTURE_INIT;
-  f->poll = NULL;
+  f->poll = echo_poll;
   f->data = data;
+
+  // printf("echo_init: f: %p, sfd: %d, cfd: %d, poll: %p\n", f, listener->sfd, cfd, f->poll);
 
   return f;
 }
 
 enum poll_state echo_poll(struct future *f, struct channel *c) {
+  printf("echo_poll\n");
+
   struct echo_data *data = (struct echo_data *)f->data;
   struct async_listener *listener = data->listener;
   struct async_reader *reader = data->reader;
-
-  printf("echo_poll\n");
 
   if (f->state == FUTURE_INIT) {
     data->readline = async_reader_readline(f, reader);
@@ -68,6 +69,7 @@ void echo_data_free(struct echo_data *data) {
   free(data->readline->data);
   free(data->readline);
   async_reader_free(data->reader);
+  async_listener_accept_free(data->accept);
   close(data->cfd);
   free(data);
 }

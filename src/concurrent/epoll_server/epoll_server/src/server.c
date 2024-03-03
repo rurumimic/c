@@ -57,23 +57,26 @@ enum poll_state server_poll(struct future *f, struct channel *c) {
       f->state = FUTURE_RUNNING;
     }
 
+    // printf("server_poll: accept before poll state: %d \n", data->accept->state);
     enum poll_state accept_state = data->accept->poll(data->accept, c);
 
     if (accept_state == POLL_PENDING) {
       return POLL_PENDING;
     }
+    // printf("server_poll: accept after poll state: %d \n", data->accept->state);
 
     struct accept_data *result = (struct accept_data *)data->accept->data;
 
     struct async_reader *reader = result->reader;
     int cfd = result->cfd;
-  
-    struct future *echo = echo_init(listener, reader, cfd);
+
+    struct future *echo = echo_init(listener, accept, reader, cfd);
+    printf("server_poll: echo_init (listener, reader, cfd: %d)\n", cfd);
     spawner_spawn(spawner, echo); // readline
 
-    async_listener_accept_free(data->accept);
-    data->accept = NULL;
-    free(echo);
+    // async_listener_accept_free(data->accept);
+    // data->accept = NULL;
+    // free(echo);
 
     return POLL_PENDING;
 }
