@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 
-struct future *echo_init(struct async_listener *listener, struct async_reader *reader, int fd) {
+struct future *echo_init(struct async_listener *listener, struct async_reader *reader, int cfd) {
   printf("echo");
   struct future *f = (struct future *)malloc(sizeof(struct future));
 
@@ -21,8 +21,8 @@ struct future *echo_init(struct async_listener *listener, struct async_reader *r
   struct echo_data *data = (struct echo_data *)malloc(sizeof(struct echo_data));
   data->listener = listener;
   data->reader = reader;
-  data->fd = fd;
-  data->reader_future = NULL;
+  data->cfd = cfd;
+  data->readline = NULL;
 
   f->state = FUTURE_INIT;
   f->poll = NULL;
@@ -35,41 +35,40 @@ enum poll_state echo_poll(struct future *f, struct channel *c) {
   struct echo_data *data = (struct echo_data *)f->data;
   struct async_listener *listener = data->listener;
   struct async_reader *reader = data->reader;
-  int fd = data->fd;
-  struct future *reader_future = data->reader_future;
 
   printf("echo_poll\n");
 
-  if (reader_future == NULL) {
-    data->reader_future = async_reader_readline(reader);
-    struct task *reader_task = task_init(data->reader_future, c);
-    channel_send(c, sizeof(struct task), reader_task, task_free);
+  if (f->state == FUTURE_INIT) {
+    data->readline = async_reader_readline(f, reader);
+    f->state = FUTURE_RUNNING;
+  }
 
+  enum poll_state readline_state = data->readline->poll(data->readline, c);
+  
+  if (readline_state == POLL_PENDING) {
     return POLL_PENDING;
   }
 
-  if (reader_future->state == FUTURE_INIT) {
-    return POLL_PENDING;
-  }
+  struct readline_data *result = (struct readline_data *)data->readline->data;
 
-  data->reader_future->state = FUTURE_STOPPED;
-  data->reader_future = NULL;
-
-  struct reader_data *result = (struct reader_data *)reader_future->data;
-
-  char *lines = result->lines;
-
-  if (lines == NULL) {
-    async_reader_free(reader);
-    printf("close: addr\n");
+  if (result->len <= 0) {
+    printf("close: %d\n", data->cfd);
+    echo_data_free(data);
     return POLL_READY;
   }
 
-  printf("read: %s, addr\n", lines);
-
-  write(fd, lines, strlen(lines));
-  fsync(fd);
+  printf("read (%d): %s\n", data->cfd, result->lines);
+  write(data->cfd, result->lines, result->len);
+  fsync(data->cfd);
 
   return POLL_PENDING;
+}
+
+void echo_data_free(struct echo_data *data) {
+  free(data->readline->data);
+  free(data->readline);
+  async_reader_free(data->reader);
+  close(data->cfd);
+  free(data);
 }
 

@@ -1,6 +1,6 @@
 #include "io_selector.h"
-#include "channel.h"
-#include "src/task.h"
+#include "io_queue.h"
+#include "task.h"
 #include "wakers.h"
 
 #include <errno.h>
@@ -13,8 +13,7 @@
 
 struct io_selector *io_selector_init(size_t epoll_size)
 {
-	struct io_selector *s =
-		(struct io_selector *)malloc(sizeof(struct io_selector));
+	struct io_selector *s = (struct io_selector *)malloc(sizeof(struct io_selector));
 
 	if (!s) {
 		perror("io_selector_init: malloc failed to allocate io_selector");
@@ -38,7 +37,7 @@ struct io_selector *io_selector_init(size_t epoll_size)
 	}
 
 	s->wakers = wakers_init(epoll_size);
-	s->queue = channel_init();
+	s->queue = io_queue_init();
 
 	pthread_mutex_init(&s->wakers_mutex, NULL);
 	pthread_mutex_init(&s->queue_mutex, NULL);
@@ -59,8 +58,7 @@ pthread_t io_selector_spawn(struct io_selector *s)
 	return tid;
 }
 
-void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
-			   struct waker *waker, struct wakers *wakers)
+void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd, struct task *task, struct wakers *wakers)
 {
 	struct epoll_event ev;
 
@@ -69,9 +67,11 @@ void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
 
 	errno = 0;
 
+  printf("io_selector_add_event: s->epfd: %d, fd: %d, flags: %d, task: %p\n", s->epfd, fd, flags, task);
+
 	if (epoll_ctl(s->epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-		// perror("io_selector_add_event: epoll_ctl failed to add event to epoll "
-		//        "instance");
+		perror("io_selector_add_event: epoll_ctl failed to add event to epoll "
+		       "instance");
 
 		if (errno == EEXIST) { // already exists
 			if (epoll_ctl(s->epfd, EPOLL_CTL_MOD, fd, &ev) == -1) {
@@ -87,7 +87,7 @@ void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
 	}
 
 	if (!wakers_find(wakers, fd)) {
-		wakers_insert(wakers, fd, waker);
+		wakers_insert(wakers, fd, task);
 	}
 }
 
@@ -105,14 +105,14 @@ void io_selector_remove_event(struct io_selector *s, int fd,
 		exit(EXIT_FAILURE);
 	}
 
-	struct waker *waker = wakers_remove(wakers, fd);
+	struct task *task = wakers_remove(wakers, fd);
 
-	if (!waker) {
-		perror("io_selector_remove_event: wakers_remove failed to remove waker");
+	if (!task) {
+		perror("io_selector_remove_event: wakers_remove failed to remove task");
 		exit(EXIT_FAILURE);
 	}
 
-	waker_free(waker);
+	task_free(task);
 }
 
 void *io_selector_select(void *arg)
@@ -131,8 +131,7 @@ void *io_selector_select(void *arg)
 		exit(EXIT_FAILURE);
 	}
 
-	struct epoll_event *events = (struct epoll_event *)malloc(
-		s->wakers->capacity * sizeof(struct epoll_event));
+	struct epoll_event *events = (struct epoll_event *)malloc(s->wakers->capacity * sizeof(struct epoll_event));
 	if (!events) {
 		perror("io_selector_select: malloc failed to allocate events");
 		exit(EXIT_FAILURE);
@@ -152,26 +151,20 @@ void *io_selector_select(void *arg)
 		for (int i = 0; i < n; i++) {
 			if (events[i].data.fd == s->event) {
 				pthread_mutex_lock(&s->queue_mutex);
-				while (!channel_is_empty(s->queue)) {
-					struct io_ops *ops =
-						(struct io_ops *)channel_recv(
-							s->queue);
+				while (!io_queue_is_empty(s->queue)) {
+					struct io_ops *ops = io_queue_recv(s->queue);
 					if (ops->type == IO_OPS_ADD) {
-						io_selector_add_event(
-							s, ops->flags, ops->fd,
-							ops->waker, s->wakers);
+						io_selector_add_event(s, ops->flags, ops->fd, ops->task, s->wakers);
 					} else if (ops->type == IO_OPS_REMOVE) {
-						io_selector_remove_event(
-							s, ops->fd, s->wakers);
+						io_selector_remove_event(s, ops->fd, s->wakers);
 					}
 					free(ops);
 				}
 				pthread_mutex_unlock(&s->queue_mutex);
 			} else {
-				struct waker *waker = wakers_remove(
-					s->wakers, events[i].data.fd);
-				if (waker) {
-					task_wake_by_ref(waker->task);
+				struct task *task = wakers_remove(s->wakers, events[i].data.fd);
+				if (task) {
+					task_wake_by_ref(task);
 				}
 			}
 		}
@@ -181,8 +174,7 @@ void *io_selector_select(void *arg)
 	return NULL;
 }
 
-void io_selector_register(struct io_selector *s, uint32_t flags, int fd,
-			  struct waker *waker)
+void io_selector_register(struct io_selector *s, uint32_t flags, int fd, struct task *task)
 {
 	pthread_mutex_lock(&s->queue_mutex);
 
@@ -195,9 +187,9 @@ void io_selector_register(struct io_selector *s, uint32_t flags, int fd,
 	ops->type = IO_OPS_ADD;
 	ops->flags = flags;
 	ops->fd = fd;
-	ops->waker = waker;
+	ops->task = task;
 
-	channel_send(s->queue, sizeof(struct io_ops), ops, io_ops_free);
+	io_queue_send(s->queue, ops);
 
 	eventfd_write(s->event, 1);
 
@@ -217,9 +209,8 @@ void io_selector_unregister(struct io_selector *s, int fd)
 	ops->type = IO_OPS_REMOVE;
 	ops->flags = 0;
 	ops->fd = fd;
-	ops->waker = NULL;
 
-	channel_send(s->queue, sizeof(struct io_ops), ops, io_ops_free);
+	io_queue_send(s->queue, ops);
 
 	eventfd_write(s->event, 1);
 
@@ -231,7 +222,7 @@ void io_selector_free(struct io_selector *s)
 	close(s->epfd);
 	close(s->event);
 	wakers_free(s->wakers);
-	channel_free(s->queue);
+	io_queue_free(s->queue);
 	free(s);
 }
 
@@ -243,6 +234,7 @@ void io_ops_free(void *p)
 	}
 
 	struct io_ops *ops = (struct io_ops *)p;
-	waker_free(ops->waker);
+	task_free(ops->task);
 	free(ops);
 }
+

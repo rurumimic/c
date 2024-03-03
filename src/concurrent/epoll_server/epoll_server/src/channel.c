@@ -1,5 +1,6 @@
 #include "channel.h"
 
+#include "task.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,7 +28,7 @@ int channel_is_empty(struct channel *c) {
     return c->length == 0;
 }
 
-void *channel_peek(struct channel *c) {
+struct task *channel_peek(struct channel *c) {
     if (!c) {
         return NULL;
     }
@@ -36,11 +37,10 @@ void *channel_peek(struct channel *c) {
         return NULL;
     }
 
-    return c->front->data;
+    return c->front->task;
 }
 
-void channel_send(struct channel *c, size_t size, void *data,
-                  void (*free)(void *data)) {
+void channel_send(struct channel *c, struct task *task) {
     if (!c) {
         perror("channel_send: channel is NULL");
         return;
@@ -54,9 +54,7 @@ void channel_send(struct channel *c, size_t size, void *data,
         exit(EXIT_FAILURE);
     }
 
-    node->size = size;
-    node->data = data;
-    node->free = free;
+    node->task = task;
     node->next = NULL;
 
     if (c->front) {
@@ -70,7 +68,7 @@ void channel_send(struct channel *c, size_t size, void *data,
     c->length++;
 }
 
-void *channel_recv(struct channel *c) {
+struct task *channel_recv(struct channel *c) {
     if (!c) {
         perror("channel_recv: channel is NULL");
         return NULL;
@@ -82,7 +80,7 @@ void *channel_recv(struct channel *c) {
         return NULL;
     }
 
-    void *data = node->data;
+    struct task *task = node->task;
     c->front = node->next;
     c->length--;
 
@@ -92,7 +90,7 @@ void *channel_recv(struct channel *c) {
 
     free(node);
 
-    return data;
+    return task;
 }
 
 void channel_free(struct channel *c) {
@@ -106,8 +104,8 @@ void channel_free(struct channel *c) {
     while (node) {
         struct channel_node *next = node->next;
 
-        if (node->data) {
-            node->free(node->data);
+        if (node->task) {
+          task_free(node->task);
         }
 
         free(node);

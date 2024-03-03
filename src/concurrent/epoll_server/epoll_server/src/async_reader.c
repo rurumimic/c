@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 
-struct async_reader *async_reader_init(int fd, struct io_selector *selector)
+struct async_reader *async_reader_init(int cfd, struct io_selector *selector)
 {
   struct async_reader *r = (struct async_reader *)malloc(sizeof(struct async_reader));
 
@@ -23,24 +23,24 @@ struct async_reader *async_reader_init(int fd, struct io_selector *selector)
     exit(EXIT_FAILURE);
   }
 
-  int flags = fcntl(fd, F_GETFL, 0);
+  int flags = fcntl(cfd, F_GETFL, 0);
   if (flags < 0) {
     perror("async_reader_init: fcntl failed to get flags");
     exit(EXIT_FAILURE);
   }
 
-  if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+  if (fcntl(cfd, F_SETFL, flags | O_NONBLOCK) < 0) {
     perror("async_reader_init: fcntl failed to set flags");
     exit(EXIT_FAILURE);
   }
 
-  r->fd = fd;
+  r->cfd = cfd;
   r->selector = selector;
 
   return r;
 }
 
-struct future *async_reader_readline(struct async_reader *reader) {
+struct future *async_reader_readline(struct future *echo, struct async_reader *reader) {
   struct future *f = (struct future *)malloc(sizeof(struct future));
 
   if (!f) {
@@ -48,9 +48,20 @@ struct future *async_reader_readline(struct async_reader *reader) {
     exit(EXIT_FAILURE);
   }
 
+  struct readline_data *data = (struct readline_data *)malloc(sizeof(struct readline_data));
+
+  if (!data) {
+    perror("async_reader_readline: malloc failed to allocate readline_data");
+    exit(EXIT_FAILURE);
+  }
+
+  data->echo = echo;
+  data->reader = reader;
+  memset(data->lines, 0, 1024);
+
   f->state = FUTURE_INIT;
   f->poll = async_reader_poll;
-  f->data = reader;
+  f->data = data;
 
   printf("async_reader_readline: future initialized\n");
 
@@ -59,21 +70,22 @@ struct future *async_reader_readline(struct async_reader *reader) {
 
 enum poll_state async_reader_poll(struct future *f, struct channel *c)
 {
-  struct async_reader *r = (struct async_reader *)f->data;
+  struct readline_data *data = (struct readline_data *)f->data;
+  struct async_reader *r = data->reader;
+  struct future *echo = data->echo;
   char buf[1024] = {0, };
 
   errno = 0;
   printf("read...\n");
-  ssize_t n = read(r->fd, buf, sizeof(buf) - 1);
+  ssize_t n = read(r->cfd, buf, sizeof(buf) - 1);
 
   if (n < 0) {
     if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
-      struct task *t = task_init(f, c);
-      struct waker *waker = waker_init(t);
-      io_selector_register(r->selector, EPOLLIN, r->fd, waker);
+      io_selector_register(r->selector, EPOLLIN, r->cfd, task_init(echo, c));
       return POLL_PENDING;
     } else {
-      return POLL_READY;
+      data->len = -1;
+      return POLL_READY; // error
     }
   }
 
@@ -81,24 +93,20 @@ enum poll_state async_reader_poll(struct future *f, struct channel *c)
     return POLL_READY;
   }
 
-  // printf("read: %s\n", buf);
-  // memcpy(r->lines, buf, 1024);
-
-  // memcpy()
-  // memcpy(result.value.read_result, buf, 1024);
+  data->len = n;
+  memcpy(data->lines, buf, n);
+  // printf("read: %s\n", data->lines);
 
   return POLL_READY;
 }
 
-void async_reader_free(void *p)
+void async_reader_free(struct async_reader *reader)
 {
-  if (!p) {
+  if (!reader) {
     perror("async_reader_free: async_reader is NULL");
     return;
   }
 
-  struct async_reader *r = (struct async_reader *)p;
-
-  free(r);
+  free(reader);
 }
 

@@ -12,8 +12,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-struct future *server_init(int port, struct io_selector *selector,
-                           struct spawner *spawner) {
+struct future *server_init(int port, struct io_selector *selector, struct spawner *spawner) {
     struct future *f = (struct future *)malloc(sizeof(struct future));
 
     if (!f) {
@@ -21,8 +20,7 @@ struct future *server_init(int port, struct io_selector *selector,
         exit(EXIT_FAILURE);
     }
 
-    struct server_data *data =
-        (struct server_data *)malloc(sizeof(struct server_data));
+    struct server_data *data = (struct server_data *)malloc(sizeof(struct server_data));
 
     if (!data) {
         perror("server_init: malloc failed to allocate server_data");
@@ -32,7 +30,7 @@ struct future *server_init(int port, struct io_selector *selector,
     /* server init */
     struct async_listener *listener = async_listener_init(port, selector);
 
-    if (listen(listener->fd, 10) < 0) {
+    if (listen(listener->sfd, 10) < 0) {
         perror("server: listen failed");
         exit(EXIT_FAILURE);
     }
@@ -40,7 +38,7 @@ struct future *server_init(int port, struct io_selector *selector,
     /* server data */
     data->listener = listener;
     data->spawner = spawner;
-    data->accept_future = NULL;
+    data->accept = NULL;
 
     f->state = FUTURE_INIT;
     f->poll = server_poll;
@@ -50,44 +48,33 @@ struct future *server_init(int port, struct io_selector *selector,
 }
 
 enum poll_state server_poll(struct future *f, struct channel *c) {
-    // list variables:
     struct server_data *data = (struct server_data *)f->data;
-    struct async_listener *listener = data->listener;
     struct spawner *spawner = data->spawner;
-    struct future *accept_future = data->accept_future;
+    struct async_listener *listener = data->listener;
 
-    if (accept_future == NULL) {
-      data->accept_future = async_listener_accept(listener); 
-      struct task *t = task_init(data->accept_future, c);
-      channel_send(c, sizeof(struct task), t, task_free);
+    if (f->state == FUTURE_INIT) {
+      data->accept = async_listener_accept(f, listener); 
+      f->state = FUTURE_RUNNING;
+    }
 
+    enum poll_state accept_state = data->accept->poll(data->accept, c);
+
+    if (accept_state == POLL_PENDING) {
       return POLL_PENDING;
     }
 
-    if (accept_future->state == FUTURE_INIT) {
-      return POLL_PENDING;
-    }
-
-    if (accept_future->state == FUTURE_STOPPED) {
-    	async_listener_accept_free(accept_future);
-	data->accept_future = NULL;
-    	return POLL_PENDING;
-    }
-
-    printf("server running...\n");
-
-    accept_future->state = FUTURE_STOPPED;
-    struct accept_data *result = (struct accept_data *)accept_future->data; 
+    struct accept_data *result = (struct accept_data *)data->accept->data;
 
     struct async_reader *reader = result->reader;
-    int fd = result->fd;
-    // addr = accept_result.addr
+    int cfd = result->cfd;
+  
+    struct future *echo = echo_init(listener, reader, cfd);
+    spawner_spawn(spawner, echo); // readline
 
-//    async_listener_accept_free(accept_future);
-//    data->accept_future = NULL;
+    async_listener_accept_free(data->accept);
+    data->accept = NULL;
+    free(echo);
 
-    spawner_spawn(spawner, echo_init(listener, reader, fd)); // readline
-    // queue read
     return POLL_PENDING;
 }
 

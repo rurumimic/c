@@ -39,20 +39,21 @@ void task_wake_by_ref(struct task *t)
 		return;
 	}
 
-	channel_send(t->channel, sizeof(struct task), t, task_free);
+	channel_send(t->channel, t);
 }
 
-void task_free(void *p)
+void task_free(struct task *t)
 {
-	if (!p) {
+	if (!t) {
 		perror("task_free: task is NULL");
 		return;
 	}
 
-	struct task *t = (struct task *)p;
-
 	if (t->future) {
     // TODO: future free
+    // if (t->future->data) {
+    //   free(t->future->data);
+    // }
 		free(t->future);
 	}
 

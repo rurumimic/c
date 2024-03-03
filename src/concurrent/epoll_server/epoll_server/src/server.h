@@ -9,7 +9,7 @@
 struct server_data {
   struct spawner *spawner; // from main
   struct async_listener *listener;
-  struct future *accept_future;
+  struct future *accept;
 };
 
 struct future *server_init(int port, struct io_selector *selector, struct spawner *spawner);

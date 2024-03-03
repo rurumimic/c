@@ -39,7 +39,7 @@ void spawner_spawn(struct spawner *s, struct future *f)
 
 	struct task *t = task_init(f, s->channel);
 
-	channel_send(s->channel, sizeof(struct task), t, task_free);
+	channel_send(s->channel, t);
 }
 
 void spawner_free(struct spawner *s)

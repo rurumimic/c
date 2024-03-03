@@ -37,8 +37,12 @@ void executor_run(struct executor *e) {
     }
 
     printf("run loop:\n");
-    while (!channel_is_empty(e->channel)) {
-        struct task *t = (struct task *)channel_recv(e->channel);
+    while (1) {
+        if (channel_is_empty(e->channel)) {
+            continue;
+        }
+
+        struct task *t = channel_recv(e->channel);
 
         if (!t) {
             perror("executor_run: task future is NULL");
@@ -52,19 +56,24 @@ void executor_run(struct executor *e) {
 
         pthread_mutex_lock(&t->future_mutex);
 
+        printf("t: %p\n", t);
+
         enum poll_state state = t->future->poll(t->future, e->channel);
+        // enum poll_state state = t->future->poll(t->future, e->channel);
 
         pthread_mutex_unlock(&t->future_mutex);
 
-        if (state == POLL_PENDING) {
-            channel_send(e->channel, sizeof(struct task), t, task_free);
-            continue;
-        }
-
-        if (state == POLL_READY && t->future->state == FUTURE_STOPPED) {
-            task_free(t);
-        }
+        // if (state == POLL_PENDING) {
+        //     channel_send(e->channel, t);
+        //     continue;
+        // }
+        //
+        // if (state == POLL_READY && t->future->state == FUTURE_STOPPED) {
+        //     task_free(t);
+        // }
   }
+
+  printf("executor loop end\n");
 }
 
 void executor_free(struct executor *e) {
