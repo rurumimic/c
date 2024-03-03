@@ -3,6 +3,7 @@
 #include "future.h"
 #include "spawner.h"
 #include "task.h"
+#include "global.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -36,8 +37,7 @@ void executor_run(struct executor *e) {
         return;
     }
 
-    printf("run loop:\n");
-    while (1) {
+    while (running) {
         if (channel_is_empty(e->channel)) {
             continue;
         }
@@ -88,3 +88,4 @@ void executor_free(struct executor *e) {
 
     free(e);
 }
+

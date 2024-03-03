@@ -78,7 +78,6 @@ enum poll_state async_reader_poll(struct future *f, struct channel *c)
   char buf[1024] = {0, };
 
   errno = 0;
-  printf("read...\n");
   ssize_t n = read(r->cfd, buf, sizeof(buf) - 1);
 
   if (n < 0) {
@@ -92,12 +91,13 @@ enum poll_state async_reader_poll(struct future *f, struct channel *c)
   }
 
   if (n == 0) {
+    data->len = 0;
     return POLL_READY;
   }
 
   data->len = n;
-  memcpy(data->lines, buf, n);
-  // printf("read: %s\n", data->lines);
+  memcpy(data->lines, buf, 1024);
+  printf("poll read: %s\n", data->lines);
 
   return POLL_READY;
 }

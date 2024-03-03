@@ -70,13 +70,15 @@ enum poll_state server_poll(struct future *f, struct channel *c) {
     struct async_reader *reader = result->reader;
     int cfd = result->cfd;
 
-    struct future *echo = echo_init(listener, accept, reader, cfd);
+    struct future *echo = echo_init(listener, data->accept, reader, cfd);
     printf("server_poll: echo_init (listener, reader, cfd: %d)\n", cfd);
     spawner_spawn(spawner, echo); // readline
 
     // async_listener_accept_free(data->accept);
     // data->accept = NULL;
     // free(echo);
+    f->state = FUTURE_INIT;
+    data->accept = NULL;
 
     return POLL_PENDING;
 }

@@ -2,6 +2,7 @@
 #include "io_queue.h"
 #include "task.h"
 #include "wakers.h"
+#include "global.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -137,7 +138,7 @@ void *io_selector_select(void *arg)
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
+	while (running) {
 		int n = epoll_wait(s->epfd, events, s->wakers->capacity, -1);
 		if (n == -1) {
 			if (errno == EINTR) {
@@ -163,14 +164,13 @@ void *io_selector_select(void *arg)
 				pthread_mutex_unlock(&s->queue_mutex);
 			} else {
 				struct task *task = wakers_remove(s->wakers, events[i].data.fd);
-				if (task) {
-					task_wake_by_ref(task);
-				}
+        task_wake_by_ref(task);
 			}
 		}
 		pthread_mutex_unlock(&s->wakers_mutex);
 	}
 
+  printf("io_selector_select: exit.\n");
 	return NULL;
 }
 

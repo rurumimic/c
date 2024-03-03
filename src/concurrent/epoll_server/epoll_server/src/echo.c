@@ -45,7 +45,7 @@ enum poll_state echo_poll(struct future *f, struct channel *c) {
   }
 
   enum poll_state readline_state = data->readline->poll(data->readline, c);
-  
+ 
   if (readline_state == POLL_PENDING) {
     return POLL_PENDING;
   }
@@ -61,6 +61,8 @@ enum poll_state echo_poll(struct future *f, struct channel *c) {
   printf("read (%d): %s\n", data->cfd, result->lines);
   write(data->cfd, result->lines, result->len);
   fsync(data->cfd);
+
+  goto poll;
 
   return POLL_PENDING;
 }
