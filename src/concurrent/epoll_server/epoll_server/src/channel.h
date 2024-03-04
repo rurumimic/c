@@ -6,7 +6,7 @@
 struct task;
 
 struct channel_node {
-  struct task *task;
+	struct task *task;
 	struct channel_node *next;
 };
 

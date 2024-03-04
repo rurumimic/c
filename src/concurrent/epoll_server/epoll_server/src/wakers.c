@@ -20,11 +20,18 @@ struct wakers *wakers_init(size_t capacity)
 
 	wakers->capacity = capacity;
 	wakers->length = 0;
-	wakers->nodes = (struct wakers_node *)malloc(capacity * sizeof(struct wakers_node));
+	wakers->nodes = (struct wakers_node *)malloc(
+		capacity * sizeof(struct wakers_node));
 
 	if (!wakers->nodes) {
 		perror("wakers_init: malloc failed to allocate wakers->nodes");
 		exit(EXIT_FAILURE);
+	}
+
+	for (size_t i = 0; i < capacity; i++) {
+		wakers->nodes[i].state = WAKERS_NODE_EMPTY;
+		wakers->nodes[i].key = -1;
+		wakers->nodes[i].task = NULL;
 	}
 
 	return wakers;
@@ -44,6 +51,11 @@ int wakers_insert(struct wakers *w, int key, struct task *task)
 {
 	if (!w) {
 		perror("wakers_insert: wakers is NULL");
+		return -1;
+	}
+
+	if (!task) {
+		perror("wakers_insert: task is NULL");
 		return -1;
 	}
 
@@ -151,13 +163,10 @@ void wakers_free(struct wakers *w)
 		return;
 	}
 
-	struct wakers_node *node = w->nodes;
-
 	for (size_t i = 0; i < w->capacity; i++) {
-		if (node->task) {
-			task_free((void *)node->task);
+		if (w->nodes[i].state == WAKERS_NODE_USED) {
+			task_free((void *)w->nodes[i].task);
 		}
-		node++;
 	}
 
 	free(w->nodes);

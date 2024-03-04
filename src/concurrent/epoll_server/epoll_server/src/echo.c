@@ -9,9 +9,13 @@
 #include <unistd.h>
 #include <string.h>
 
-struct future *echo_init(struct async_listener *listener, struct future *accept,
-			 struct async_reader *reader, int cfd)
+struct future *echo_init(struct async_reader *reader)
 {
+  if (!reader) {
+    perror("echo_init: reader is NULL");
+    exit(EXIT_FAILURE);
+  }
+
 	struct future *f = (struct future *)malloc(sizeof(struct future));
 
 	if (!f) {
@@ -21,64 +25,87 @@ struct future *echo_init(struct async_listener *listener, struct future *accept,
 
 	struct echo_data *data =
 		(struct echo_data *)malloc(sizeof(struct echo_data));
-	data->listener = listener;
-	data->reader = reader;
-	data->cfd = cfd;
-	data->accept = accept;
-	data->readline = NULL; // init in echo_poll - async_reader_readline
 
-	f->state = FUTURE_INIT;
+	data->reader = reader;
+
 	f->poll = echo_poll;
 	f->data = data;
-
-	// printf("echo_init: f: %p, sfd: %d, cfd: %d, poll: %p\n", f, listener->sfd, cfd, f->poll);
+  f->free = echo_free;
 
 	return f;
 }
 
 enum poll_state echo_poll(struct future *f, struct channel *c)
 {
-	printf("echo_poll\n");
+  if (!f) {
+    perror("echo_poll: future is NULL");
+    exit(EXIT_FAILURE);
+  }
+
+  if (!c) {
+    perror("echo_poll: channel is NULL");
+    exit(EXIT_FAILURE);
+  }
 
 	struct echo_data *data = (struct echo_data *)f->data;
-	struct async_listener *listener = data->listener;
-	struct async_reader *reader = data->reader;
+  if (!data) {
+    perror("echo_poll: data is NULL");
+    exit(EXIT_FAILURE);
+  }
 
-	if (f->state == FUTURE_INIT) {
-		data->readline = async_reader_readline(f, reader);
-		f->state = FUTURE_RUNNING;
-	}
+	struct async_reader *reader = data->reader;
+	int cfd = reader->cfd;
+
+	struct io_selector *selector = reader->selector;
 
 	while (running) {
-		enum poll_state readline_state = data->readline->poll(data->readline, c);
+		struct future *readline =
+			async_reader_readline(f, selector, cfd);
 
+		enum poll_state readline_state = readline->poll(readline, c);
 		if (readline_state == POLL_PENDING) {
 			return POLL_PENDING;
 		}
 
-		struct readline_data *result = (struct readline_data *)data->readline->data;
+		struct readline_data *result =
+			(struct readline_data *)readline->data;
+
+    if (!result) {
+      perror("echo_poll: result is NULL");
+      exit(EXIT_FAILURE);
+    }
 
 		if (result->len <= 0) {
-      break;
+			async_reader_readline_free(readline);
+			break;
 		}
 
-		printf("read (%d): %s\n", data->cfd, result->lines);
-		write(data->cfd, result->lines, result->len);
-		fsync(data->cfd);
+		write(cfd, result->lines, result->len);
+		fsync(cfd);
+
+    printf("Echo (%d): %s", cfd, result->lines);
+		async_reader_readline_free(readline);
 	}
 
-  printf("close: %d\n", data->cfd);
-  echo_data_free(data);
-
-  return POLL_READY;
+  printf("Close (%d)\n", cfd);
+  
+	return POLL_READY;
 }
 
-void echo_data_free(struct echo_data *data)
+void echo_free(struct future *f)
 {
-	free(data->readline->data);
-	free(data->readline);
-	async_reader_free(data->reader);
-	async_listener_accept_free(data->accept);
-	close(data->cfd);
-	free(data);
+	if (!f) {
+		perror("echo_free: future is NULL");
+		return;
+	}
+
+	struct echo_data *data = (struct echo_data *)f->data;
+	if (data) {
+		async_reader_free(data->reader);
+		free(data);
+	} else {
+		perror("echo_free: data is NULL");
+	}
+
+	free(f);
 }

@@ -9,83 +9,66 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct executor *executor_init(void) {
-    struct executor *e = (struct executor *)malloc(sizeof(struct executor));
+struct executor *executor_init(void)
+{
+	struct executor *e = (struct executor *)malloc(sizeof(struct executor));
 
-    if (!e) {
-        perror("executor_init: malloc failed to allocate executor");
-        exit(EXIT_FAILURE);
-    }
+	if (!e) {
+		perror("executor_init: malloc failed to allocate executor");
+		exit(EXIT_FAILURE);
+	}
 
-    e->channel = channel_init();
+	e->channel = channel_init();
 
-    return e;
+	return e;
 }
 
-struct spawner *executor_get_spawner(struct executor *e) {
-    if (!e) {
-        perror("executor_get_spawner: executor is NULL");
-        return NULL;
-    }
+struct spawner *executor_get_spawner(struct executor *e)
+{
+	if (!e) {
+		perror("executor_get_spawner: executor is NULL");
+		return NULL;
+	}
 
-    return spawner_init(e->channel);
+	return spawner_init(e->channel);
 }
 
-void executor_run(struct executor *e) {
-    if (!e) {
-        perror("executor_run: executor is NULL");
-        return;
-    }
+void executor_run(struct executor *e)
+{
+	if (!e) {
+		perror("executor_run: executor is NULL");
+		return;
+	}
 
-    while (running) {
-        if (channel_is_empty(e->channel)) {
-            continue;
-        }
+	while (running) {
+		if (channel_is_empty(e->channel)) {
+			continue;
+		}
 
-        struct task *t = channel_recv(e->channel);
+		struct task *t = channel_recv(e->channel);
 
-        if (!t) {
-            perror("executor_run: task future is NULL");
-            exit(1);
-        }
+		pthread_mutex_lock(&t->future_mutex);
 
-        if (!t->future) {
-            perror("executor_run: task future is NULL");
-            exit(1);
-        }
+		enum poll_state state = t->future->poll(t->future, e->channel);
 
-        printf("exectuor_run: poll t: %p, f: %p, poll: %p\n", t, t->future, t->future->poll);
+		pthread_mutex_unlock(&t->future_mutex);
 
-        pthread_mutex_lock(&t->future_mutex);
-
-        enum poll_state state = t->future->poll(t->future, e->channel);
-
-        pthread_mutex_unlock(&t->future_mutex);
-
-        // if (state == POLL_PENDING) {
-        //     channel_send(e->channel, t);
-        //     continue;
-        // }
-        //
-        // if (state == POLL_READY && t->future->state == FUTURE_STOPPED) {
-        if (state == POLL_READY) {
-            task_free(t);
-        }
-  }
-
-  printf("executor loop end\n");
+		if (state == POLL_READY) {
+			task_free(t);
+		}
+	}
 }
 
-void executor_free(struct executor *e) {
-    if (!e) {
-        perror("executor_free: executor is NULL");
-        return;
-    }
+void executor_free(struct executor *e)
+{
+	if (!e) {
+		perror("executor_free: executor is NULL");
+		return;
+	}
 
-    if (e->channel) {
-        channel_free(e->channel);
-    }
+	if (e->channel) {
+		channel_free(e->channel);
+	}
 
-    free(e);
+	free(e);
 }
-

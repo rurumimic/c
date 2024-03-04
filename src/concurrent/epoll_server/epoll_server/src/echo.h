@@ -5,15 +5,14 @@
 #include "async_listener.h"
 
 struct echo_data {
-  struct async_listener *listener;
-  struct future *accept;
+  // owned
   struct async_reader *reader;
-  int cfd;
-  struct future *readline;
+
+  // ref
 };
 
-struct future *echo_init(struct async_listener *listener, struct future *accept, struct async_reader *reader, int cfd);
+struct future *echo_init(struct async_reader *reader);
 enum poll_state echo_poll(struct future *f, struct channel *c);
-void echo_data_free(struct echo_data *data);
+void echo_free(struct future *f);
 
 #endif // _ECHO_H
