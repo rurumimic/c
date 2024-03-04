@@ -6,6 +6,8 @@
 #include "async_reader.h"
 #include "echo.h"
 
+#include "global.h"
+
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,35 +54,29 @@ enum poll_state server_poll(struct future *f, struct channel *c) {
     struct spawner *spawner = data->spawner;
     struct async_listener *listener = data->listener;
 
-    if (f->state == FUTURE_INIT) {
+    while (running) {
       data->accept = async_listener_accept(f, listener); 
-      f->state = FUTURE_RUNNING;
-    }
+      // printf("server_poll: accept before poll state: %d \n", data->accept->state);
+      // printf("server_poll -> accept_poll\n");
+      enum poll_state accept_state = data->accept->poll(data->accept, c);
 
-    // printf("server_poll: accept before poll state: %d \n", data->accept->state);
-    enum poll_state accept_state = data->accept->poll(data->accept, c);
+      if (accept_state == POLL_PENDING) {
+        return POLL_PENDING;
+      }
+      // printf("server_poll: accept after poll state: %d \n", data->accept->state);
 
-    if (accept_state == POLL_PENDING) {
-      return POLL_PENDING;
-    }
-    // printf("server_poll: accept after poll state: %d \n", data->accept->state);
+      struct accept_data *result = (struct accept_data *)data->accept->data;
 
-    struct accept_data *result = (struct accept_data *)data->accept->data;
+      struct async_reader *reader = result->reader;
+      int cfd = result->cfd;
 
-    struct async_reader *reader = result->reader;
-    int cfd = result->cfd;
+      struct future *echo = echo_init(listener, data->accept, reader, cfd);
+      printf("server_poll: echo_init (listener, reader, cfd: %d)\n", cfd);
+      spawner_spawn(spawner, echo); // readline
+  }
 
-    struct future *echo = echo_init(listener, data->accept, reader, cfd);
-    printf("server_poll: echo_init (listener, reader, cfd: %d)\n", cfd);
-    spawner_spawn(spawner, echo); // readline
-
-    // async_listener_accept_free(data->accept);
-    // data->accept = NULL;
-    // free(echo);
-    f->state = FUTURE_INIT;
-    data->accept = NULL;
-
-    return POLL_PENDING;
+  // free server;
+  return POLL_READY;
 }
 
 void server_data_free(struct server_data *data) {
