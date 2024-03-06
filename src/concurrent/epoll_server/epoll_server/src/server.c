@@ -40,7 +40,6 @@ struct future *server_init(int port, struct io_selector *selector,
 		exit(EXIT_FAILURE);
 	}
 
-	/* server init */
 	struct async_listener *listener = async_listener_init(port, selector);
 
 	if (listen(listener->sfd, 10) < 0) {
@@ -57,6 +56,24 @@ struct future *server_init(int port, struct io_selector *selector,
 	f->free = server_free;
 
 	return f;
+}
+
+void server_free(struct future *f)
+{
+	if (!f) {
+		perror("server_free: future is NULL");
+		return;
+	}
+
+	struct server_data *data = (struct server_data *)f->data;
+	if (data) {
+		async_listener_free(data->listener);
+		free(data);
+	} else {
+		perror("server_free: data is NULL");
+	}
+
+	free(f);
 }
 
 enum poll_state server_poll(struct future *f, struct channel *c)
@@ -98,20 +115,3 @@ enum poll_state server_poll(struct future *f, struct channel *c)
 	return POLL_READY;
 }
 
-void server_free(struct future *f)
-{
-	if (!f) {
-		perror("server_free: future is NULL");
-		return;
-	}
-
-	struct server_data *data = (struct server_data *)f->data;
-	if (data) {
-		async_listener_free(data->listener);
-		free(data);
-	} else {
-		perror("server_free: data is NULL");
-	}
-
-	free(f);
-}

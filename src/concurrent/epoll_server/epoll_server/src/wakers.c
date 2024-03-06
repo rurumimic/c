@@ -37,6 +37,23 @@ struct wakers *wakers_init(size_t capacity)
 	return wakers;
 }
 
+void wakers_free(struct wakers *w)
+{
+	if (!w) {
+		perror("wakers_free: wakers is NULL");
+		return;
+	}
+
+	for (size_t i = 0; i < w->capacity; i++) {
+		if (w->nodes[i].state == WAKERS_NODE_USED) {
+			task_free((void *)w->nodes[i].task);
+		}
+	}
+
+	free(w->nodes);
+	free(w);
+}
+
 int wakers_hash_function(int key, size_t capacity)
 {
 	if (capacity == 0) {
@@ -154,21 +171,4 @@ struct task *wakers_remove(struct wakers *w, int key)
 	w->length--;
 
 	return task;
-}
-
-void wakers_free(struct wakers *w)
-{
-	if (!w) {
-		perror("wakers_free: wakers is NULL");
-		return;
-	}
-
-	for (size_t i = 0; i < w->capacity; i++) {
-		if (w->nodes[i].state == WAKERS_NODE_USED) {
-			task_free((void *)w->nodes[i].task);
-		}
-	}
-
-	free(w->nodes);
-	free(w);
 }

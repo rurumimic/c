@@ -2,7 +2,6 @@
 #define _ECHO_H
 
 #include "future.h"
-#include "async_listener.h"
 
 struct echo_data {
   // owned
@@ -12,7 +11,8 @@ struct echo_data {
 };
 
 struct future *echo_init(struct async_reader *reader);
-enum poll_state echo_poll(struct future *f, struct channel *c);
 void echo_free(struct future *f);
+
+enum poll_state echo_poll(struct future *f, struct channel *c);
 
 #endif // _ECHO_H

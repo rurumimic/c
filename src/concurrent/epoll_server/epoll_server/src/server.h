@@ -16,7 +16,8 @@ struct server_data {
 };
 
 struct future *server_init(int port, struct io_selector *selector, struct spawner *spawner);
-enum poll_state server_poll(struct future *f, struct channel *c);
 void server_free(struct future *f);
+
+enum poll_state server_poll(struct future *f, struct channel *c);
 
 #endif // _SERVER_H

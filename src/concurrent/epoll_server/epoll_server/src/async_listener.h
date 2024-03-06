@@ -30,7 +30,8 @@ struct async_listener *async_listener_init(int port, struct io_selector *selecto
 void async_listener_free(struct async_listener *listener);
 
 struct future *async_listener_accept(struct future *server, struct async_listener *listener);
-enum poll_state async_listener_accept_poll(struct future *f, struct channel *c);
 void async_listener_accept_free(struct future *f);
+
+enum poll_state async_listener_accept_poll(struct future *f, struct channel *c);
 
 #endif // _ASYNC_LISTENER_H

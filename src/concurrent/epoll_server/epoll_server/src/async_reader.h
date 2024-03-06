@@ -30,7 +30,8 @@ struct async_reader *async_reader_init(struct io_selector *selector, int cfd);
 void async_reader_free(struct async_reader *reader);
 
 struct future *async_reader_readline(struct future *echo, struct io_selector *selector, int cfd);
-enum poll_state async_reader_readline_poll(struct future *f, struct channel *c);
 void async_reader_readline_free(struct future *f);
+
+enum poll_state async_reader_readline_poll(struct future *f, struct channel *c);
 
 #endif // !_ASYNC_READER_H

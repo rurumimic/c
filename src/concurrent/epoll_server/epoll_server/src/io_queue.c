@@ -20,6 +20,32 @@ struct io_queue *io_queue_init(void)
 	return q;
 }
 
+void io_queue_free(struct io_queue *q)
+{
+	if (!q) {
+		perror("io_queue_free: io_queue is NULL");
+		return;
+	}
+
+	struct io_queue_node *node = q->front;
+
+	while (node) {
+		struct io_queue_node *next = node->next;
+
+		if (node->ops) {
+			if (node->ops->task) {
+				task_free(node->ops->task);
+			}
+			free(node->ops);
+		}
+
+		free(node);
+		node = next;
+	}
+
+	free(q);
+}
+
 int io_queue_is_empty(struct io_queue *q)
 {
 	if (!q) {
@@ -91,28 +117,3 @@ struct io_ops *io_queue_recv(struct io_queue *q)
 	return ops;
 }
 
-void io_queue_free(struct io_queue *q)
-{
-	if (!q) {
-		perror("io_queue_free: io_queue is NULL");
-		return;
-	}
-
-	struct io_queue_node *node = q->front;
-
-	while (node) {
-		struct io_queue_node *next = node->next;
-
-		if (node->ops) {
-			if (node->ops->task) {
-				task_free(node->ops->task);
-			}
-			free(node->ops);
-		}
-
-		free(node);
-		node = next;
-	}
-
-	free(q);
-}

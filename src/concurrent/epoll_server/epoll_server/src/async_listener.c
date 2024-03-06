@@ -1,7 +1,6 @@
 #include "async_listener.h"
 #include "future.h"
 #include "io_selector.h"
-#include "wakers.h"
 #include "channel.h"
 #include "async_reader.h"
 
@@ -72,6 +71,17 @@ struct async_listener *async_listener_init(int port, struct io_selector *selecto
   return listener;
 }
 
+void async_listener_free(struct async_listener *listener) {
+  if (!listener) {
+    perror("async_listener_free: listener is NULL");
+    return;
+  }
+
+  // move sfd to io_selector
+  io_selector_unregister(listener->selector, listener->sfd);
+  free(listener);
+}
+
 struct future *async_listener_accept(struct future *server, struct async_listener *listener) {
   if (!server) {
     perror("async_listener_accept: server is NULL");
@@ -108,6 +118,23 @@ struct future *async_listener_accept(struct future *server, struct async_listene
   f->free = async_listener_accept_free;
 
   return f;
+}
+
+void async_listener_accept_free(struct future *f) {
+  if (!f) {
+    perror("async_listener_accept_free: future is NULL");
+    return;
+  }
+
+  struct accept_data *data = (struct accept_data *)f->data;
+
+  if (data) {
+    free(data);
+  } else {
+    perror("async_listener_accept_free: data is NULL");
+  }
+
+  free(f);
 }
 
 enum poll_state async_listener_accept_poll(struct future *f, struct channel *c) {
@@ -148,33 +175,5 @@ enum poll_state async_listener_accept_poll(struct future *f, struct channel *c) 
   }
 
   return POLL_READY;
-}
-
-void async_listener_free(struct async_listener *listener) {
-  if (!listener) {
-    perror("async_listener_free: listener is NULL");
-    return;
-  }
-
-  // move sfd to io_selector
-  io_selector_unregister(listener->selector, listener->sfd);
-  free(listener);
-}
-
-void async_listener_accept_free(struct future *f) {
-  if (!f) {
-    perror("async_listener_accept_free: future is NULL");
-    return;
-  }
-
-  struct accept_data *data = (struct accept_data *)f->data;
-
-  if (data) {
-    free(data);
-  } else {
-    perror("async_listener_accept_free: data is NULL");
-  }
-
-  free(f);
 }
 

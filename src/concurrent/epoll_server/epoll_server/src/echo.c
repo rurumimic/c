@@ -1,5 +1,4 @@
 #include "echo.h"
-#include "async_listener.h"
 #include "async_reader.h"
 #include "future.h"
 #include "global.h"
@@ -7,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 
 struct future *echo_init(struct async_reader *reader)
 {
@@ -33,6 +31,24 @@ struct future *echo_init(struct async_reader *reader)
   f->free = echo_free;
 
 	return f;
+}
+
+void echo_free(struct future *f)
+{
+	if (!f) {
+		perror("echo_free: future is NULL");
+		return;
+	}
+
+	struct echo_data *data = (struct echo_data *)f->data;
+	if (data) {
+		async_reader_free(data->reader);
+		free(data);
+	} else {
+		perror("echo_free: data is NULL");
+	}
+
+	free(f);
 }
 
 enum poll_state echo_poll(struct future *f, struct channel *c)
@@ -92,20 +108,3 @@ enum poll_state echo_poll(struct future *f, struct channel *c)
 	return POLL_READY;
 }
 
-void echo_free(struct future *f)
-{
-	if (!f) {
-		perror("echo_free: future is NULL");
-		return;
-	}
-
-	struct echo_data *data = (struct echo_data *)f->data;
-	if (data) {
-		async_reader_free(data->reader);
-		free(data);
-	} else {
-		perror("echo_free: data is NULL");
-	}
-
-	free(f);
-}

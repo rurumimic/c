@@ -46,6 +46,20 @@ struct io_selector *io_selector_init(size_t epoll_size)
 	return s;
 }
 
+void io_selector_free(struct io_selector *s)
+{
+	if (!s) {
+		perror("io_selector_free: io_selector is NULL");
+		return;
+	}
+
+	close(s->epfd);
+	close(s->event);
+	wakers_free(s->wakers);
+	io_queue_free(s->queue);
+	free(s);
+}
+
 pthread_t io_selector_spawn(struct io_selector *s)
 {
 	if (!s) {
@@ -270,20 +284,6 @@ void io_selector_unregister(struct io_selector *s, int fd)
 	eventfd_write(s->event, 1);
 
 	pthread_mutex_unlock(&s->queue_mutex);
-}
-
-void io_selector_free(struct io_selector *s)
-{
-	if (!s) {
-		perror("io_selector_free: io_selector is NULL");
-		return;
-	}
-
-	close(s->epfd);
-	close(s->event);
-	wakers_free(s->wakers);
-	io_queue_free(s->queue);
-	free(s);
 }
 
 void io_ops_free(void *p)

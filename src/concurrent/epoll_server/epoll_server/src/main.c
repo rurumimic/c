@@ -8,10 +8,7 @@
 #include "global.h"
 #include "executor.h"
 #include "spawner.h"
-#include "future.h"
 #include "server.h"
-#include "wakers.h"
-#include "async_listener.h"
 #include "io_selector.h"
 
 #define PORT 10000

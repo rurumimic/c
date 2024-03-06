@@ -9,8 +9,9 @@ struct executor {
 };
 
 struct executor *executor_init(void);
+void executor_free(struct executor *e);
+
 struct spawner *executor_get_spawner(struct executor *e);
 void executor_run(struct executor *e);
-void executor_free(struct executor *e);
 
 #endif // _EXECUTOR_H

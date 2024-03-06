@@ -17,10 +17,11 @@ struct channel {
 };
 
 struct channel *channel_init(void);
+void channel_free(struct channel *c);
+
 int channel_is_empty(struct channel *c);
 struct task *channel_peek(struct channel *c);
 void channel_send(struct channel *c, struct task *t);
 struct task *channel_recv(struct channel *c);
-void channel_free(struct channel *c);
 
 #endif // _CHANNEL_H

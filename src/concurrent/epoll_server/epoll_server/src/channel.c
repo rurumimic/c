@@ -1,6 +1,6 @@
 #include "channel.h"
-
 #include "task.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,6 +18,30 @@ struct channel *channel_init(void)
 	c->length = 0;
 
 	return c;
+}
+
+void channel_free(struct channel *c)
+{
+	if (!c) {
+		perror("channel_free: channel is NULL");
+		return;
+	}
+
+	struct channel_node *node = c->front;
+
+	while (node) {
+		struct channel_node *next = node->next;
+
+		if (node->task) {
+			task_free(node->task);
+		}
+
+		free(node);
+
+		node = next;
+	}
+
+	free(c);
 }
 
 int channel_is_empty(struct channel *c)
@@ -50,10 +74,10 @@ void channel_send(struct channel *c, struct task *task)
 		return;
 	}
 
-  if (!task) {
-    perror("channel_send: task is NULL");
-    return;
-  }
+	if (!task) {
+		perror("channel_send: task is NULL");
+		return;
+	}
 
 	struct channel_node *node =
 		(struct channel_node *)malloc(sizeof(struct channel_node));
@@ -104,26 +128,3 @@ struct task *channel_recv(struct channel *c)
 	return task;
 }
 
-void channel_free(struct channel *c)
-{
-	if (!c) {
-		perror("channel_free: channel is NULL");
-		return;
-	}
-
-	struct channel_node *node = c->front;
-
-	while (node) {
-		struct channel_node *next = node->next;
-
-		if (node->task) {
-			task_free(node->task);
-		}
-
-		free(node);
-
-		node = next;
-	}
-
-	free(c);
-}

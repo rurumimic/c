@@ -25,6 +25,16 @@ struct spawner *spawner_init(struct channel *c)
 	return s;
 }
 
+void spawner_free(struct spawner *s)
+{
+	if (!s) {
+		perror("spawner_free: spawner is NULL");
+		return;
+	}
+
+	free(s);
+}
+
 void spawner_spawn(struct spawner *s, struct future *f)
 {
 	if (!s) {
@@ -40,14 +50,4 @@ void spawner_spawn(struct spawner *s, struct future *f)
 	struct task *t = task_init(f, s->channel);
 
 	channel_send(s->channel, t);
-}
-
-void spawner_free(struct spawner *s)
-{
-	if (!s) {
-		perror("spawner_free: spawner is NULL");
-		return;
-	}
-
-	free(s);
 }

@@ -24,9 +24,10 @@ struct wakers {
 };
 
 struct wakers *wakers_init(size_t capacity);
+void wakers_free(struct wakers *w);
+
 int wakers_insert(struct wakers *w, int key, struct task *task);
 struct wakers_node *wakers_find(struct wakers *w, int key);
 struct task *wakers_remove(struct wakers *w, int key);
-void wakers_free(struct wakers *w);
 
 #endif // _WAKERS_H

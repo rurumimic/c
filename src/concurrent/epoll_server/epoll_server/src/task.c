@@ -32,6 +32,20 @@ struct task *task_init(struct future *f, struct channel *c)
 	return t;
 }
 
+void task_free(struct task *t)
+{
+	if (!t) {
+		perror("task_free: task is NULL");
+		return;
+	}
+
+	t->future->free(t->future);
+
+	pthread_mutex_destroy(&t->future_mutex);
+
+	free(t);
+}
+
 void task_wake_by_ref(struct task *t)
 {
 	if (!t) {
@@ -40,18 +54,4 @@ void task_wake_by_ref(struct task *t)
 	}
 
 	channel_send(t->channel, t);
-}
-
-void task_free(struct task *t)
-{
-	if (!t) {
-		perror("task_free: task is NULL");
-		return;
-	}
-
-  t->future->free(t->future);
-
-	pthread_mutex_destroy(&t->future_mutex);
-
-	free(t);
 }

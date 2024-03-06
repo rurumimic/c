@@ -23,6 +23,20 @@ struct executor *executor_init(void)
 	return e;
 }
 
+void executor_free(struct executor *e)
+{
+	if (!e) {
+		perror("executor_free: executor is NULL");
+		return;
+	}
+
+	if (e->channel) {
+		channel_free(e->channel);
+	}
+
+	free(e);
+}
+
 struct spawner *executor_get_spawner(struct executor *e)
 {
 	if (!e) {
@@ -59,16 +73,3 @@ void executor_run(struct executor *e)
 	}
 }
 
-void executor_free(struct executor *e)
-{
-	if (!e) {
-		perror("executor_free: executor is NULL");
-		return;
-	}
-
-	if (e->channel) {
-		channel_free(e->channel);
-	}
-
-	free(e);
-}
