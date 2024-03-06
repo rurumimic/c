@@ -1,10 +1,11 @@
 #include "server.h"
-#include "async_listener.h"
-#include "future.h"
-#include "spawner.h"
-#include "async_reader.h"
+#include "../async_listener.h"
+#include "../future.h"
+#include "../spawner.h"
+#include "../async_reader.h"
 #include "echo.h"
-#include "global.h"
+#include "accept.h"
+#include "../global.h"
 
 #include <netinet/in.h>
 #include <stdio.h>
@@ -15,15 +16,15 @@
 struct future *server_init(int port, struct io_selector *selector,
 			   struct spawner *spawner)
 {
-  if (!selector) {
-    perror("server_init: selector is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!selector) {
+		perror("server_init: selector is NULL");
+		exit(EXIT_FAILURE);
+	}
 
-  if (!spawner) {
-    perror("server_init: spawner is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!spawner) {
+		perror("server_init: spawner is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct future *f = (struct future *)malloc(sizeof(struct future));
 
@@ -78,15 +79,15 @@ void server_free(struct future *f)
 
 enum poll_state server_poll(struct future *f, struct channel *c)
 {
-  if (!f) {
-    perror("server_poll: future is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!f) {
+		perror("server_poll: future is NULL");
+		exit(EXIT_FAILURE);
+	}
 
-  if (!c) {
-    perror("server_poll: channel is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!c) {
+		perror("server_poll: channel is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct server_data *data = (struct server_data *)f->data;
 	struct io_selector *selector = data->selector;
@@ -94,7 +95,7 @@ enum poll_state server_poll(struct future *f, struct channel *c)
 	struct async_listener *listener = data->listener;
 
 	while (running) {
-		struct future *accept = async_listener_accept(f, listener);
+		struct future *accept = accept_init(f, listener);
 
 		enum poll_state accept_state = accept->poll(accept, c);
 		if (accept_state == POLL_PENDING) {
@@ -103,8 +104,8 @@ enum poll_state server_poll(struct future *f, struct channel *c)
 
 		struct accept_data *result = (struct accept_data *)accept->data;
 		int cfd = result->cfd;
-    printf("Accept (%d): %s\n", cfd, result->cip);
-		async_listener_accept_free(accept);
+		printf("Accept (%d): %s\n", cfd, result->cip);
+		accept_free(accept);
 
 		// move cfd to reader
 		// move reader to echo
@@ -114,4 +115,3 @@ enum poll_state server_poll(struct future *f, struct channel *c)
 
 	return POLL_READY;
 }
-

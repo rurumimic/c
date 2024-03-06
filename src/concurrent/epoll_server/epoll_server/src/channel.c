@@ -127,4 +127,3 @@ struct task *channel_recv(struct channel *c)
 
 	return task;
 }
-

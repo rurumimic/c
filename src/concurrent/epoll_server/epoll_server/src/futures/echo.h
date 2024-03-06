@@ -1,13 +1,13 @@
 #ifndef _ECHO_H
 #define _ECHO_H
 
-#include "future.h"
+#include "../future.h"
 
 struct echo_data {
-  // owned
-  struct async_reader *reader;
+	// owned
+	struct async_reader *reader;
 
-  // ref
+	// ref
 };
 
 struct future *echo_init(struct async_reader *reader);

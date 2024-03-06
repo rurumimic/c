@@ -1,7 +1,8 @@
 #include "echo.h"
-#include "async_reader.h"
-#include "future.h"
-#include "global.h"
+#include "readline.h"
+#include "../async_reader.h"
+#include "../future.h"
+#include "../global.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,10 +10,10 @@
 
 struct future *echo_init(struct async_reader *reader)
 {
-  if (!reader) {
-    perror("echo_init: reader is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!reader) {
+		perror("echo_init: reader is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct future *f = (struct future *)malloc(sizeof(struct future));
 
@@ -28,7 +29,7 @@ struct future *echo_init(struct async_reader *reader)
 
 	f->poll = echo_poll;
 	f->data = data;
-  f->free = echo_free;
+	f->free = echo_free;
 
 	return f;
 }
@@ -53,21 +54,21 @@ void echo_free(struct future *f)
 
 enum poll_state echo_poll(struct future *f, struct channel *c)
 {
-  if (!f) {
-    perror("echo_poll: future is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!f) {
+		perror("echo_poll: future is NULL");
+		exit(EXIT_FAILURE);
+	}
 
-  if (!c) {
-    perror("echo_poll: channel is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!c) {
+		perror("echo_poll: channel is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct echo_data *data = (struct echo_data *)f->data;
-  if (!data) {
-    perror("echo_poll: data is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!data) {
+		perror("echo_poll: data is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct async_reader *reader = data->reader;
 	int cfd = reader->cfd;
@@ -75,8 +76,7 @@ enum poll_state echo_poll(struct future *f, struct channel *c)
 	struct io_selector *selector = reader->selector;
 
 	while (running) {
-		struct future *readline =
-			async_reader_readline(f, selector, cfd);
+		struct future *readline = readline_init(f, selector, cfd);
 
 		enum poll_state readline_state = readline->poll(readline, c);
 		if (readline_state == POLL_PENDING) {
@@ -86,25 +86,24 @@ enum poll_state echo_poll(struct future *f, struct channel *c)
 		struct readline_data *result =
 			(struct readline_data *)readline->data;
 
-    if (!result) {
-      perror("echo_poll: result is NULL");
-      exit(EXIT_FAILURE);
-    }
+		if (!result) {
+			perror("echo_poll: result is NULL");
+			exit(EXIT_FAILURE);
+		}
 
 		if (result->len <= 0) {
-			async_reader_readline_free(readline);
+			readline_free(readline);
 			break;
 		}
 
 		write(cfd, result->lines, result->len);
 		fsync(cfd);
 
-    printf("Echo (%d): %s", cfd, result->lines);
-		async_reader_readline_free(readline);
+		printf("Echo (%d): %s", cfd, result->lines);
+		readline_free(readline);
 	}
 
-  printf("Close (%d)\n", cfd);
-  
+	printf("Close (%d)\n", cfd);
+
 	return POLL_READY;
 }
-
