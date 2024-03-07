@@ -12,6 +12,7 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 
 struct io_selector *io_selector_init(size_t epoll_size)
 {
@@ -30,13 +31,24 @@ struct io_selector *io_selector_init(size_t epoll_size)
 		exit(EXIT_FAILURE);
 	}
 
-	s->event = eventfd(0, 0);
+	int event = eventfd(0, 0);
+  int flags = fcntl(event, F_GETFL, 0);
+  if (flags < 0) {
+    perror("io_selector_init: fcntl failed to get flags");
+    exit(EXIT_FAILURE);
+  }
 
-	if (s->event == -1) {
+  if (fcntl(event, F_SETFL, flags | O_NONBLOCK) < 0) {
+    perror("io_selector_init: fcntl failed to set flags");
+    exit(EXIT_FAILURE);
+  }
+
+	if (event == -1) {
 		perror("io_selector_init: eventfd failed to create eventfd instance");
 		exit(EXIT_FAILURE);
 	}
 
+  s->event = event;
 	s->wakers = wakers_init(epoll_size);
 	s->queue = io_queue_init();
 
@@ -187,7 +199,12 @@ void *io_selector_select(void *arg)
 	}
 
 	while (running) {
-		int n = epoll_wait(s->epfd, events, s->wakers->capacity, -1);
+		int n = epoll_wait(s->epfd, events, s->wakers->capacity, 100);
+
+		if (n == 0) {
+			continue;
+		}
+
 		if (n == -1) {
 			if (errno == EINTR) {
 				continue;
@@ -196,11 +213,26 @@ void *io_selector_select(void *arg)
 			exit(EXIT_FAILURE);
 		}
 
+		uint64_t val;
+		ssize_t ret;
+
 		pthread_mutex_lock(&s->wakers_mutex);
 		for (int i = 0; i < n; i++) {
 			if (events[i].data.fd == s->event) {
+        errno = 0;
+				ret = read(s->event, &val, sizeof(val));
+        if (ret < 0) {
+          if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
+            continue;
+          } else {
+            perror("io_selector_select: read failed to read eventfd");
+            exit(EXIT_FAILURE);
+          }
+        }
+
 				pthread_mutex_lock(&s->queue_mutex);
 				while (!io_queue_is_empty(s->queue)) {
+          printf("-");
 					struct io_ops *ops =
 						io_queue_recv(s->queue);
 					if (ops->type == IO_OPS_ADD) {

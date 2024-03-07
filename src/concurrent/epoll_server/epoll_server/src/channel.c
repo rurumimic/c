@@ -16,6 +16,8 @@ struct channel *channel_init(void)
 	c->front = NULL;
 	c->rear = NULL;
 	c->length = 0;
+	c->cond_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+	c->cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
 
 	return c;
 }
@@ -40,6 +42,9 @@ void channel_free(struct channel *c)
 
 		node = next;
 	}
+
+	pthread_mutex_destroy(&c->cond_mutex);
+	pthread_cond_destroy(&c->cond);
 
 	free(c);
 }

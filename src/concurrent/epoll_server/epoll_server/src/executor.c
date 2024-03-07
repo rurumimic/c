@@ -55,6 +55,13 @@ void executor_run(struct executor *e)
 	}
 
 	while (running) {
+    pthread_mutex_lock(&e->channel->cond_mutex);
+    if (pthread_cond_wait(&e->channel->cond, &e->channel->cond_mutex) != 0) {
+      perror("executor_run: pthread_cond_wait failed");
+      exit(EXIT_FAILURE);
+    }
+    pthread_mutex_unlock(&e->channel->cond_mutex);
+
 		if (channel_is_empty(e->channel)) {
 			continue;
 		}
