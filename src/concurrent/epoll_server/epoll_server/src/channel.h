@@ -2,7 +2,6 @@
 #define _CHANNEL_H
 
 #include <stddef.h>
-#include <pthread.h>
 
 struct task;
 
@@ -15,8 +14,6 @@ struct channel {
 	size_t length;
 	struct channel_node *front;
 	struct channel_node *rear;
-	pthread_mutex_t cond_mutex;
-	pthread_cond_t cond;
 };
 
 struct channel *channel_init(void);

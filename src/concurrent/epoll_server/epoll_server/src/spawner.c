@@ -2,6 +2,7 @@
 #include "task.h"
 #include "future.h"
 #include "channel.h"
+#include "global.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -50,8 +51,8 @@ void spawner_spawn(struct spawner *s, struct future *f)
 
 	struct task *t = task_init(f, s->channel);
 
-	pthread_mutex_lock(&s->channel->cond_mutex);
+	pthread_mutex_lock(&cond_mutex);
 	channel_send(s->channel, t);
-	pthread_cond_broadcast(&s->channel->cond);
-	pthread_mutex_unlock(&s->channel->cond_mutex);
+	pthread_cond_broadcast(&cond);
+	pthread_mutex_unlock(&cond_mutex);
 }

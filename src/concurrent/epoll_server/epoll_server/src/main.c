@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "global.h"
 #include "executor.h"
@@ -15,10 +16,14 @@
 
 volatile sig_atomic_t running = 1;
 
+pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
 static void handler(int signum)
 {
 	printf("Exiting...\n");
 	running = 0;
+  pthread_cond_broadcast(&cond);
 }
 
 int main(int argc, char *argv[])
@@ -41,6 +46,8 @@ int main(int argc, char *argv[])
 	executor_run(e);
 
 	// Clean Up
+	pthread_mutex_destroy(&cond_mutex);
+	pthread_cond_destroy(&cond);
 	pthread_join(tid, NULL);
 	io_selector_free(selector);
 	spawner_free(spawner);
