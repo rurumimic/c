@@ -21,9 +21,11 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static void handler(int signum)
 {
-	printf("Exiting...\n");
+	printf("[SIG: %d]\n", signum);
 	running = 0;
-  pthread_cond_broadcast(&cond);
+	pthread_mutex_lock(&cond_mutex);
+	pthread_cond_broadcast(&cond);
+	pthread_mutex_unlock(&cond_mutex);
 }
 
 int main(int argc, char *argv[])
@@ -46,12 +48,12 @@ int main(int argc, char *argv[])
 	executor_run(e);
 
 	// Clean Up
-	pthread_mutex_destroy(&cond_mutex);
-	pthread_cond_destroy(&cond);
 	pthread_join(tid, NULL);
 	io_selector_free(selector);
 	spawner_free(spawner);
 	executor_free(e);
+	pthread_mutex_destroy(&cond_mutex);
+	pthread_cond_destroy(&cond);
 
 	printf("Goodbye.\n");
 

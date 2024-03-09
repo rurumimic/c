@@ -189,7 +189,7 @@ void *io_selector_select(void *arg)
 	}
 
 	while (running) {
-		int n = epoll_wait(s->epfd, events, s->wakers->capacity, -1);
+		int n = epoll_wait(s->epfd, events, s->wakers->capacity, 10);
 
 		if (n == 0) {
 			continue;
@@ -208,7 +208,6 @@ void *io_selector_select(void *arg)
 
 		pthread_mutex_lock(&s->wakers_mutex);
 		for (int i = 0; i < n; i++) {
-			printf("event: %d\n", events[i].data.fd);
 			if (events[i].data.fd == s->event) {
 				errno = 0;
 				ret = read(s->event, &val, sizeof(val));
@@ -226,15 +225,6 @@ void *io_selector_select(void *arg)
 				while (!io_queue_is_empty(s->queue)) {
 					struct io_ops *ops =
 						io_queue_recv(s->queue);
-					if (ops->type == IO_OPS_SHUTDOWN) {
-						free(ops);
-						pthread_mutex_unlock(
-							&s->queue_mutex);
-						pthread_mutex_unlock(
-							&s->wakers_mutex);
-						free(events);
-						return NULL;
-					}
 
 					if (ops->type == IO_OPS_ADD) {
 						io_selector_add_event(
@@ -321,29 +311,3 @@ void io_selector_unregister(struct io_selector *s, int fd)
 	pthread_mutex_unlock(&s->queue_mutex);
 }
 
-void io_selector_shutdown(struct io_selector *s)
-{
-	if (!s) {
-		perror("io_selector_register: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	pthread_mutex_lock(&s->queue_mutex);
-
-	struct io_ops *ops = (struct io_ops *)malloc(sizeof(struct io_ops));
-	if (!ops) {
-		perror("io_selector_register: malloc failed to allocate io_ops");
-		exit(EXIT_FAILURE);
-	}
-
-	ops->type = IO_OPS_SHUTDOWN;
-	ops->flags = 0;
-	ops->fd = 0;
-	ops->task = NULL;
-
-	io_queue_send(s->queue, ops);
-
-	eventfd_write(s->event, 1);
-
-	pthread_mutex_unlock(&s->queue_mutex);
-}

@@ -54,8 +54,9 @@ void task_wake_by_ref(struct task *t)
 		return;
 	}
 
-  pthread_mutex_lock(&cond_mutex);
 	channel_send(t->channel, t);
-  pthread_cond_broadcast(&cond);
-  pthread_mutex_unlock(&cond_mutex);
+
+	pthread_mutex_lock(&cond_mutex);
+	pthread_cond_broadcast(&cond);
+	pthread_mutex_unlock(&cond_mutex);
 }

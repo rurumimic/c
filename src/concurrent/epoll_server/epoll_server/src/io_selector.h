@@ -31,6 +31,5 @@ void *io_selector_select(void *arg);
 
 void io_selector_register(struct io_selector *s, uint32_t flags, int fd, struct task *task);
 void io_selector_unregister(struct io_selector *s, int fd);
-void io_selector_shutdown(struct io_selector *s);
 
 #endif // _IO_SELECTOR_H
