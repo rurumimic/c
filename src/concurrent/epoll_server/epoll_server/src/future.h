@@ -2,7 +2,6 @@
 #define _FUTURE_H
 
 #include "channel.h"
-#include "async_reader.h"
 
 enum poll_state {
 	POLL_PENDING,
