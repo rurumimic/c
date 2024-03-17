@@ -4,8 +4,8 @@
 #include "poll.h"
 
 struct waker {
-  void (*wake)(void *data);
-  void (*wake_by_ref)(void *data);
+  void *ptr; // => task
+  void (*wake)(void *data); // queue.push(ptr)
   void (*drop)(void *data);
 };
 
