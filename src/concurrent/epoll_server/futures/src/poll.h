@@ -8,7 +8,7 @@ enum poll_state {
 
 struct poll {
 	enum poll_state state;
-	void *output;
+	void *output; // when state == POLL_READY, output is string
 	void (*free)(void *output);
 };
 

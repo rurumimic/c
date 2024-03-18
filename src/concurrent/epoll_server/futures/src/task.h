@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 struct task {
-	struct future *future;
+	struct future *future; // async_hello, goodbye
 	pthread_mutex_t mutex;
 };
 
