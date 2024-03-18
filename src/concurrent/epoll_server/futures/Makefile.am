@@ -1,8 +1,9 @@
 bin_PROGRAMS = futures
 
 futures_SOURCES = \
-	src/main.c \
 	src/future.c \
-	src/hello.c \
-	src/task.c
+	src/async_hello.c \
+	src/main.c \
+	src/task.c \
+	src/goodbye.c
 

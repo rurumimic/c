@@ -1,11 +1,11 @@
 #include "task.h"
-#include "hello.h"
+#include "future.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
-struct task *task_init(void)
+struct task *task_init(struct future *future)
 {
 	struct task *t = (struct task *)malloc(sizeof(struct task));
 
@@ -14,24 +14,37 @@ struct task *task_init(void)
 		exit(EXIT_FAILURE);
 	}
 
-	t->hello = hello_init();
-  pthread_mutex_init(&t->mutex, NULL);
+	t->future = future;
+	pthread_mutex_init(&t->mutex, NULL);
 
 	return t;
 }
 
-void task_free(struct task *t)
+void task_free(void *ptr)
 {
-	if (!t) {
-		perror("task_free: task is NULL");
+	if (!ptr) {
+		perror("task_free: ptr is NULL");
 		return;
 	}
 
-	if (t->hello) {
-		hello_free(t->hello);
+	struct task *t = (struct task *)ptr;
+
+	if (t->future) {
+		t->future->free(t->future);
 	}
 
-  pthread_mutex_destroy(&t->mutex);
-
+	pthread_mutex_destroy(&t->mutex);
 	free(t);
+}
+
+void task_wake(void *ptr)
+{
+	if (!ptr) {
+		perror("task_wake: ptr is NULL");
+		return;
+	}
+
+	struct task *t = (struct task *)ptr;
+
+	// nothing to do here
 }

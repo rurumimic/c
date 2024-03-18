@@ -5,10 +5,11 @@
 
 struct task {
 	struct future *future;
-  pthread_mutex_t mutex;
+	pthread_mutex_t mutex;
 };
 
-struct task *task_init(void);
-void task_free(struct task *t);
+struct task *task_init(struct future *future);
+void task_free(void *ptr);
+void task_wake(void *ptr);
 
 #endif // _TASK_H

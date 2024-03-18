@@ -41,6 +41,16 @@ make distclean
 ./build/futures
 ```
 
+```txt
+[Hello] Pending: Hello
+[Goodbye] Ready
+[Hello] Pending: Hello, World
+[Goodbye] Ready
+[Hello] READY: Hello, World!!!
+[Goodbye] Ready
+[Main] Goodbye.
+```
+
 ---
 
 ## Clang Format

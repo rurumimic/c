@@ -4,24 +4,21 @@
 #include "poll.h"
 
 struct waker {
-  void *ptr; // => task
-  void (*wake)(void *data); // queue.push(ptr)
-  void (*drop)(void *data);
+	void *ptr; // => task
+	void (*wake)(void *data); // queue.push(ptr)
+	void (*free)(void *data);
 };
 
 struct context {
-  struct waker *waker;
-  void *data;
+	struct waker waker;
 };
 
 struct future {
-  struct poll (*poll)(struct future *future, struct context *cx);
-  void (*drop)(struct future *future);
+	void *data; // => async_hello
+	struct poll (*poll)(struct future *future, struct context cx);
+	void (*free)(struct future *future);
 };
 
-struct poll poll(struct future *future, struct context *cx);
-
-struct context from_waker(struct waker *waker);
-struct waker *waker(struct context *cx);
+struct context from_waker(struct waker waker);
 
 #endif // _FUTURE_H

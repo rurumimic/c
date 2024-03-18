@@ -2,13 +2,14 @@
 #define _POLL_H
 
 enum poll_state {
-  POLL_PENDING,
-  POLL_READY,
+	POLL_PENDING,
+	POLL_READY,
 };
 
 struct poll {
-  enum poll_state state;
-  void *output;
+	enum poll_state state;
+	void *output;
+	void (*free)(void *output);
 };
 
 #endif // _POLL_H
