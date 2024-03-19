@@ -16,16 +16,10 @@
 
 volatile sig_atomic_t running = 1;
 
-pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
 static void handler(int signum)
 {
 	printf("[SIG: %d]\n", signum);
 	running = 0;
-	pthread_mutex_lock(&cond_mutex);
-	pthread_cond_broadcast(&cond);
-	pthread_mutex_unlock(&cond_mutex);
 }
 
 int main(int argc, char *argv[])

@@ -7,7 +7,13 @@
 #include "../spawner.h"
 #include "../async_listener.h"
 
+enum async_server_state {
+	SERVER_LISTENING,
+};
+
 struct server_data {
+	enum async_server_state state;
+
 	// ref
 	struct io_selector *selector;
 	struct spawner *spawner; // from main
@@ -16,10 +22,8 @@ struct server_data {
 	struct async_listener *listener;
 };
 
-struct future *server_init(int port, struct io_selector *selector,
-			   struct spawner *spawner);
+struct future *server_init(int port, struct io_selector *selector, struct spawner *spawner);
 void server_free(struct future *f);
-
-enum poll_state server_poll(struct future *f, struct channel *c);
+struct poll server_poll(struct future *f, struct context cx);
 
 #endif // _SERVER_H

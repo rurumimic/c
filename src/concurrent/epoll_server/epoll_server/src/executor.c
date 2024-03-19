@@ -4,6 +4,7 @@
 #include "spawner.h"
 #include "task.h"
 #include "global.h"
+#include "poll.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -67,14 +68,20 @@ void executor_run(struct executor *e)
 
 		struct task *t = channel_recv(e->channel);
 
-		pthread_mutex_lock(&t->future_mutex);
+		pthread_mutex_lock(&t->mutex);
 
-		enum poll_state state = t->future->poll(t->future, e->channel);
+    struct waker waker = { .ptr = t, .wake = task_wake, .free = task_free };
+    struct context cx = from_waker(waker);
 
-		pthread_mutex_unlock(&t->future_mutex);
+		struct poll poll = t->future->poll(t->future, cx);
 
-		if (state == POLL_READY) {
-			task_free(t);
+		pthread_mutex_unlock(&t->mutex);
+
+		if (poll.state == POLL_READY) {
+      if (poll.free) {
+        poll.free(poll.output);
+      }
+      // task_free(t);
 		}
 	}
 }

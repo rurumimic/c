@@ -2,6 +2,7 @@
 #define _IO_QUEUE_H
 
 #include <stddef.h>
+#include "future.h"
 
 enum io_ops_type {
   IO_OPS_ADD,
@@ -13,7 +14,7 @@ struct io_ops {
   enum io_ops_type type;
   int flags;
   int fd;
-  struct task *task;
+  struct waker waker;
 };
 
 struct io_queue_node {

@@ -1,6 +1,8 @@
 #include "async_listener.h"
 #include "io_selector.h"
 #include "async_reader.h"
+#include "future.h"
+#include "futures/accept.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,5 +77,14 @@ void async_listener_free(struct async_listener *listener) {
   // move sfd to io_selector
   io_selector_unregister(listener->selector, listener->sfd);
   free(listener);
+}
+
+struct future *async_listener_accept(struct async_listener *listener) {
+  if (!listener) {
+    perror("async_listener_accept: listener is NULL");
+    exit(EXIT_FAILURE);
+  }
+
+  return accept_init(listener->selector, listener->sfd);
 }
 

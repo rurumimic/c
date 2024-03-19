@@ -37,7 +37,7 @@ struct future *server_init(int port, struct io_selector *selector,
 		(struct server_data *)malloc(sizeof(struct server_data));
 
 	if (!data) {
-		perror("server_init: malloc failed to allocate server_data");
+		perror("server_init: malloc failed to allocate data");
 		exit(EXIT_FAILURE);
 	}
 
@@ -48,12 +48,13 @@ struct future *server_init(int port, struct io_selector *selector,
 		exit(EXIT_FAILURE);
 	}
 
-	data->listener = listener;
-	data->spawner = spawner;
+	data->state = SERVER_LISTENING;
 	data->selector = selector;
+	data->spawner = spawner;
+	data->listener = listener;
 
-	f->poll = server_poll;
 	f->data = data;
+	f->poll = server_poll;
 	f->free = server_free;
 
 	return f;
@@ -77,41 +78,38 @@ void server_free(struct future *f)
 	free(f);
 }
 
-enum poll_state server_poll(struct future *f, struct channel *c)
+struct poll server_poll(struct future *f, struct context cx)
 {
 	if (!f) {
 		perror("server_poll: future is NULL");
 		exit(EXIT_FAILURE);
 	}
 
-	if (!c) {
-		perror("server_poll: channel is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	struct server_data *data = (struct server_data *)f->data;
-	struct io_selector *selector = data->selector;
-	struct spawner *spawner = data->spawner;
-	struct async_listener *listener = data->listener;
+	struct server_data *server = (struct server_data *)f->data;
+	struct io_selector *selector = server->selector;
+	struct spawner *spawner = server->spawner;
+	struct async_listener *listener = server->listener;
 
 	while (running) {
-		struct future *accept = accept_init(f, listener);
+		if (server->state == SERVER_LISTENING) {
+      struct future *accept = async_listener_accept(listener);
+			struct poll poll = accept->poll(accept, cx);
+			if (poll.state == POLL_PENDING) {
+				return (struct poll){ .state = POLL_PENDING,
+						      .output = NULL,
+						      .free = NULL };
+			}
 
-		enum poll_state accept_state = accept->poll(accept, c);
-		if (accept_state == POLL_PENDING) {
-			return POLL_PENDING;
+      struct accept_data *result = (struct accept_data *)poll.output;
+      int cfd = result->cfd;
+      printf("Accept (%d): %s\n", cfd, result->cip);
+      accept->free(accept);
+
+      // move cfd to reader
+      // move reader to echo
+      spawner_spawn(spawner, echo_init(async_reader_init(selector, cfd)));
 		}
-
-		struct accept_data *result = (struct accept_data *)accept->data;
-		int cfd = result->cfd;
-		printf("Accept (%d): %s\n", cfd, result->cip);
-		accept_free(accept);
-
-		// move cfd to reader
-		// move reader to echo
-		spawner_spawn(spawner,
-			      echo_init(async_reader_init(selector, cfd)));
 	}
 
-	return POLL_READY;
+	return (struct poll){ .state = POLL_READY, .output = NULL, .free = NULL };
 }

@@ -229,7 +229,7 @@ void *io_selector_select(void *arg)
 					if (ops->type == IO_OPS_ADD) {
 						io_selector_add_event(
 							s, ops->flags, ops->fd,
-							ops->task, s->wakers);
+							ops->waker, s->wakers);
 					} else if (ops->type == IO_OPS_REMOVE) {
 						io_selector_remove_event(
 							s, ops->fd, s->wakers);
@@ -240,7 +240,7 @@ void *io_selector_select(void *arg)
 			} else {
 				struct task *task = wakers_remove(
 					s->wakers, events[i].data.fd);
-				task_wake_by_ref(task);
+				task_wake((void *)task);
 			}
 		}
 		pthread_mutex_unlock(&s->wakers_mutex);
@@ -252,15 +252,10 @@ void *io_selector_select(void *arg)
 }
 
 void io_selector_register(struct io_selector *s, uint32_t flags, int fd,
-			  struct task *task)
+			  struct waker waker)
 {
 	if (!s) {
 		perror("io_selector_register: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	if (!task) {
-		perror("io_selector_register: task is NULL");
 		exit(EXIT_FAILURE);
 	}
 
@@ -275,7 +270,7 @@ void io_selector_register(struct io_selector *s, uint32_t flags, int fd,
 	ops->type = IO_OPS_ADD;
 	ops->flags = flags;
 	ops->fd = fd;
-	ops->task = task;
+	ops->waker = waker;
 
 	io_queue_send(s->queue, ops);
 
@@ -302,7 +297,7 @@ void io_selector_unregister(struct io_selector *s, int fd)
 	ops->type = IO_OPS_REMOVE;
 	ops->flags = 0;
 	ops->fd = fd;
-	ops->task = NULL;
+	ops->waker = (struct waker){ .ptr = NULL, .wake = NULL, .free = NULL };
 
 	io_queue_send(s->queue, ops);
 
@@ -310,4 +305,3 @@ void io_selector_unregister(struct io_selector *s, int fd)
 
 	pthread_mutex_unlock(&s->queue_mutex);
 }
-
