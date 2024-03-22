@@ -102,8 +102,7 @@ enum poll_state readline_poll(struct future *f, struct channel *c)
 
 	if (n < 0) {
 		if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
-			io_selector_register(selector, EPOLLIN, cfd,
-					     task_init(echo, c));
+			io_selector_register(selector, EPOLLIN, cfd, task_init(echo, c));
 			return POLL_PENDING;
 		} else {
 			data->len = -1;

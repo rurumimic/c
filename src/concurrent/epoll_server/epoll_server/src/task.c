@@ -7,12 +7,17 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-struct task *task_init(struct future *f)
+struct task *task_init(struct future *f, struct channel *c)
 {
 	if (!f) {
 		perror("task_init: future is NULL");
 		return NULL;
 	}
+
+  if (!c) {
+    perror("task_init: channel is NULL");
+    return NULL;
+  }
 
 	struct task *t = (struct task *)malloc(sizeof(struct task));
 
@@ -22,6 +27,7 @@ struct task *task_init(struct future *f)
 	}
 
 	t->future = f;
+  t->channel = c;
 	pthread_mutex_init(&t->mutex, NULL);
 
 	return t;
@@ -35,6 +41,8 @@ void task_free(void *ptr)
 	}
 
 	struct task *t = (struct task *)ptr;
+
+  t->channel = NULL;
 
 	if (t->future) {
 		t->future->free(t->future);
@@ -51,9 +59,11 @@ void task_wake(void *ptr)
 		return;
 	}
 
-	// channel_send(t->channel, t);
+  struct task *t = (struct task *)ptr;
 
-	// pthread_mutex_lock(&cond_mutex);
-	// pthread_cond_broadcast(&cond);
-	// pthread_mutex_unlock(&cond_mutex);
+	channel_send(t->channel, t);
+
+	pthread_mutex_lock(&cond_mutex);
+	pthread_cond_broadcast(&cond);
+	pthread_mutex_unlock(&cond_mutex);
 }

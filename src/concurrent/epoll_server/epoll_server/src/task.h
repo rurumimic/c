@@ -8,10 +8,11 @@
 
 struct task {
 	struct future *future; // server, accept, echo, readline
+	struct channel *channel;
 	pthread_mutex_t mutex;
 };
 
-struct task *task_init(struct future *f);
+struct task *task_init(struct future *f, struct channel *c);
 void task_free(void *ptr);
 void task_wake(void *ptr);
 

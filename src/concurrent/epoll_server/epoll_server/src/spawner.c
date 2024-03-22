@@ -48,6 +48,6 @@ void spawner_spawn(struct spawner *s, struct future *f)
 		return;
 	}
 
-	struct task *t = task_init(f);
+	struct task *t = task_init(f, s->channel);
 	channel_send(s->channel, t);
 }
