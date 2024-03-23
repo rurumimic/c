@@ -1,8 +1,8 @@
+#include "../global.h"
 #include "io_selector.h"
 #include "io_queue.h"
 #include "task.h"
 #include "wakers.h"
-#include "global.h"
 
 #include <errno.h>
 #include <pthread.h>

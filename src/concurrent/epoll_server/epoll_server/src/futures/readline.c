@@ -1,7 +1,7 @@
-#include "readline.h"
 #include "../future.h"
-#include "../channel.h"
-#include "../io_selector.h"
+#include "../scheduler/channel.h"
+#include "../scheduler/io_selector.h"
+#include "readline.h"
 
 #include <sys/epoll.h>
 #include <error.h>

@@ -7,10 +7,10 @@
 #include <pthread.h>
 
 #include "global.h"
-#include "executor.h"
-#include "spawner.h"
 #include "futures/server.h"
-#include "io_selector.h"
+#include "scheduler/executor.h"
+#include "scheduler/spawner.h"
+#include "scheduler/io_selector.h"
 
 #define PORT 10000
 

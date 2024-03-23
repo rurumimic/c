@@ -1,10 +1,10 @@
-#include "executor.h"
+#include "../future.h"
+#include "../global.h"
 #include "channel.h"
-#include "future.h"
+#include "executor.h"
+#include "poll.h"
 #include "spawner.h"
 #include "task.h"
-#include "global.h"
-#include "poll.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -56,36 +56,38 @@ void executor_run(struct executor *e)
 	}
 
 	while (running) {
-    while (channel_is_empty(e->channel)) {
-      pthread_mutex_lock(&cond_mutex);
-      if (pthread_cond_wait(&cond, &cond_mutex) != 0) {
-        perror("executor_run: pthread_cond_wait failed");
-        exit(EXIT_FAILURE);
-      }
-      pthread_mutex_unlock(&cond_mutex);
+		while (channel_is_empty(e->channel)) {
+			pthread_mutex_lock(&cond_mutex);
+			if (pthread_cond_wait(&cond, &cond_mutex) != 0) {
+				perror("executor_run: pthread_cond_wait failed");
+				exit(EXIT_FAILURE);
+			}
+			pthread_mutex_unlock(&cond_mutex);
 
-      if (!running) {
-        printf("Close: executor\n");
-        return;
-      }
-    }
+			if (!running) {
+				printf("Close: executor\n");
+				return;
+			}
+		}
 
 		struct task *t = channel_recv(e->channel);
 
 		pthread_mutex_lock(&t->mutex);
 
-    struct waker waker = { .ptr = t, .wake = task_wake, .free = task_free };
-    struct context cx = from_waker(waker);
+		struct waker waker = { .ptr = t,
+				       .wake = task_wake,
+				       .free = task_free };
+		struct context cx = from_waker(waker);
 
 		struct poll poll = t->future->poll(t->future, cx);
 
 		pthread_mutex_unlock(&t->mutex);
 
 		if (poll.state == POLL_READY) {
-      if (poll.free) {
-        poll.free(poll.output);
-      }
-      task_free(t);
+			if (poll.free) {
+				poll.free(poll.output);
+			}
+			task_free(t);
 		}
 	}
 }

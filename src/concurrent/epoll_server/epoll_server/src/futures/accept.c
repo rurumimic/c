@@ -1,9 +1,9 @@
-#include "accept.h"
-#include "../async_listener.h"
 #include "../future.h"
-#include "../io_selector.h"
-#include "../channel.h"
-#include "../async_reader.h"
+#include "../io/async_listener.h"
+#include "../io/async_reader.h"
+#include "../scheduler/io_selector.h"
+#include "../scheduler/channel.h"
+#include "accept.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -19,10 +19,10 @@
 
 struct future *accept_init(struct io_selector *selector, int sfd)
 {
-  if (!selector) {
-    perror("accept_init: selector is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!selector) {
+		perror("accept_init: selector is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct future *f = (struct future *)malloc(sizeof(struct future));
 
@@ -31,7 +31,8 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 		exit(EXIT_FAILURE);
 	}
 
-	struct accept_data *data = (struct accept_data *)malloc(sizeof(struct accept_data));
+	struct accept_data *data =
+		(struct accept_data *)malloc(sizeof(struct accept_data));
 
 	if (!data) {
 		perror("accpet_init: malloc failed to allocate accept_data");
@@ -76,10 +77,10 @@ struct poll accept_poll(struct future *f, struct context cx)
 	}
 
 	struct accept_data *data = (struct accept_data *)f->data;
-  if (!data) {
-    perror("accept_poll: data is NULL");
-    exit(EXIT_FAILURE);
-  }
+	if (!data) {
+		perror("accept_poll: data is NULL");
+		exit(EXIT_FAILURE);
+	}
 
 	struct io_selector *selector = data->selector;
 	int sfd = data->sfd;
@@ -88,11 +89,14 @@ struct poll accept_poll(struct future *f, struct context cx)
 	size_t client_addr_size = sizeof(client_address);
 
 	errno = 0;
-	int cfd = accept(sfd, (struct sockaddr *)&client_address, (socklen_t *)&client_addr_size);
+	int cfd = accept(sfd, (struct sockaddr *)&client_address,
+			 (socklen_t *)&client_addr_size);
 	if (cfd < 0) {
 		if (errno == EWOULDBLOCK) {
 			io_selector_register(selector, EPOLLIN, sfd, cx.waker);
-			return (struct poll){.state = POLL_PENDING, .output = NULL, .free = NULL};
+			return (struct poll){ .state = POLL_PENDING,
+					      .output = NULL,
+					      .free = NULL };
 		} else {
 			perror("accept_poll: accept failed");
 			exit(EXIT_FAILURE);
@@ -100,10 +104,13 @@ struct poll accept_poll(struct future *f, struct context cx)
 	}
 
 	data->cfd = cfd;
-	if (inet_ntop(AF_INET, &client_address.sin_addr, data->cip, INET_ADDRSTRLEN) == NULL) {
+	if (inet_ntop(AF_INET, &client_address.sin_addr, data->cip,
+		      INET_ADDRSTRLEN) == NULL) {
 		perror("accept_poll: inet_ntop failed");
 		exit(EXIT_FAILURE);
 	}
 
-	return (struct poll){.state = POLL_READY, .output = data, .free = NULL};
+	return (struct poll){ .state = POLL_READY,
+			      .output = data,
+			      .free = NULL };
 }

@@ -6,9 +6,8 @@
 #define MAX_CHARS 1024
 
 #include "../future.h"
-#include "../channel.h"
-#include "../io_selector.h"
-
+#include "../scheduler/channel.h"
+#include "../scheduler/io_selector.h"
 
 struct readline_data {
 	// ref

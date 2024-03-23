@@ -1,7 +1,7 @@
-#include "task.h"
-#include "future.h"
+#include "../future.h"
+#include "../global.h"
 #include "channel.h"
-#include "global.h"
+#include "task.h"
 
 #include <stdio.h>
 #include <stdlib.h>

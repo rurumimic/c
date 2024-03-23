@@ -1,8 +1,8 @@
 #ifndef _SPAWNER_H
 #define _SPAWNER_H
 
+#include "../future.h"
 #include "channel.h"
-#include "future.h"
 
 struct spawner {
 	struct channel *channel;

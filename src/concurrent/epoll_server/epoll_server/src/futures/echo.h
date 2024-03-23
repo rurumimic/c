@@ -4,13 +4,12 @@
 #include "../future.h"
 
 enum async_echo_state {
-  ECHO_READING,
+	ECHO_READING,
 };
 
 struct echo_data {
-  enum async_echo_state state;
-
 	// owned
+	enum async_echo_state state;
 	struct async_reader *reader;
 
 	// ref

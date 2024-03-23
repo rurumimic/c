@@ -14,7 +14,7 @@ enum wakers_node_state {
 struct wakers_node {
 	enum wakers_node_state state;
 	int key;
-  struct waker waker;
+	struct waker waker;
 };
 
 struct wakers {

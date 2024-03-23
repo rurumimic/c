@@ -1,11 +1,11 @@
-#include "server.h"
-#include "../async_listener.h"
 #include "../future.h"
-#include "../spawner.h"
-#include "../async_reader.h"
-#include "echo.h"
-#include "accept.h"
 #include "../global.h"
+#include "../io/async_listener.h"
+#include "../scheduler/spawner.h"
+#include "accept.h"
+#include "../io/async_reader.h"
+#include "echo.h"
+#include "server.h"
 
 #include <netinet/in.h>
 #include <stdio.h>
@@ -92,7 +92,7 @@ struct poll server_poll(struct future *f, struct context cx)
 
 	while (running) {
 		if (server->state == SERVER_LISTENING) {
-      struct future *accept = async_listener_accept(listener);
+			struct future *accept = async_listener_accept(listener);
 			struct poll poll = accept->poll(accept, cx);
 			if (poll.state == POLL_PENDING) {
 				return (struct poll){ .state = POLL_PENDING,
@@ -100,16 +100,20 @@ struct poll server_poll(struct future *f, struct context cx)
 						      .free = NULL };
 			}
 
-      struct accept_data *result = (struct accept_data *)poll.output;
-      int cfd = result->cfd;
-      printf("Accept (%d): %s\n", cfd, result->cip);
-      accept->free(accept);
+			struct accept_data *result =
+				(struct accept_data *)poll.output;
+			int cfd = result->cfd;
+			printf("Accept (%d): %s\n", cfd, result->cip);
+			accept->free(accept);
 
-      // move cfd to reader
-      // move reader to echo
-      spawner_spawn(spawner, echo_init(async_reader_init(selector, cfd)));
+			// move cfd to reader
+			// move reader to echo
+			spawner_spawn(spawner, echo_init(async_reader_init(
+						       selector, cfd)));
 		}
 	}
 
-	return (struct poll){ .state = POLL_READY, .output = NULL, .free = NULL };
+	return (struct poll){ .state = POLL_READY,
+			      .output = NULL,
+			      .free = NULL };
 }

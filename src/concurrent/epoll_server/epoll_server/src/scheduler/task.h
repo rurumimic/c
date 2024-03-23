@@ -1,7 +1,7 @@
 #ifndef _TASK_H
 #define _TASK_H
 
-#include "future.h"
+#include "../future.h"
 #include "channel.h"
 
 #include <pthread.h>

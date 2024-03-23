@@ -34,7 +34,7 @@ void io_queue_free(struct io_queue *q)
 
 		if (node->ops) {
 			if (node->ops->waker.ptr) {
-        node->ops->waker.free(node->ops->waker.ptr);
+				node->ops->waker.free(node->ops->waker.ptr);
 			}
 			free(node->ops);
 		}
@@ -116,4 +116,3 @@ struct io_ops *io_queue_recv(struct io_queue *q)
 
 	return ops;
 }
-

@@ -4,12 +4,11 @@
 #include <netinet/in.h>
 
 #include "../future.h"
-#include "../io_selector.h"
+#include "../scheduler/io_selector.h"
 
 struct accept_data {
 	// ref
 	struct io_selector *selector;
-	// struct future *server; // waker
 	int sfd;
 
 	// owned

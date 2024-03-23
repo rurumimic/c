@@ -2,30 +2,30 @@
 #define _IO_QUEUE_H
 
 #include <stddef.h>
-#include "future.h"
+#include "../future.h"
 
 enum io_ops_type {
-  IO_OPS_ADD,
-  IO_OPS_REMOVE,
-  IO_OPS_SHUTDOWN,
+	IO_OPS_ADD,
+	IO_OPS_REMOVE,
+	IO_OPS_SHUTDOWN,
 };
 
 struct io_ops {
-  enum io_ops_type type;
-  int flags;
-  int fd;
-  struct waker waker;
+	enum io_ops_type type;
+	int flags;
+	int fd;
+	struct waker waker;
 };
 
 struct io_queue_node {
-  struct io_ops *ops;
-  struct io_queue_node *next;
+	struct io_ops *ops;
+	struct io_queue_node *next;
 };
 
 struct io_queue {
-  size_t length;
-  struct io_queue_node *front;
-  struct io_queue_node *rear;
+	size_t length;
+	struct io_queue_node *front;
+	struct io_queue_node *rear;
 };
 
 struct io_queue *io_queue_init(void);

@@ -1,8 +1,8 @@
+#include "../future.h"
+#include "../global.h"
+#include "channel.h"
 #include "spawner.h"
 #include "task.h"
-#include "future.h"
-#include "channel.h"
-#include "global.h"
 
 #include <pthread.h>
 #include <stdio.h>

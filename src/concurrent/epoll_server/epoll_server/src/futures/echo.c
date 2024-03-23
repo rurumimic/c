@@ -1,8 +1,8 @@
-#include "echo.h"
-#include "readline.h"
-#include "../async_reader.h"
 #include "../future.h"
 #include "../global.h"
+#include "../io/async_reader.h"
+#include "echo.h"
+#include "readline.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,9 +22,10 @@ struct future *echo_init(struct async_reader *reader)
 		exit(EXIT_FAILURE);
 	}
 
-	struct echo_data *data = (struct echo_data *)malloc(sizeof(struct echo_data));
+	struct echo_data *data =
+		(struct echo_data *)malloc(sizeof(struct echo_data));
 
-  data->state = ECHO_READING;
+	data->state = ECHO_READING;
 	data->reader = reader;
 
 	f->data = data;
@@ -71,30 +72,35 @@ struct poll echo_poll(struct future *f, struct context cx)
 	struct io_selector *selector = reader->selector;
 
 	while (running) {
-    if (echo->state == ECHO_READING) {
-      struct future *readline = async_reader_readline(reader);
-      struct poll poll = readline->poll(readline, cx);
-      if (poll.state == POLL_PENDING) {
-        return (struct poll){.state = POLL_PENDING, .output = NULL, .free = NULL};
-      }
-      
-      struct readline_data *result = (struct readline_data *)poll.output;
-      size_t len = result->len;
+		if (echo->state == ECHO_READING) {
+			struct future *readline = async_reader_readline(reader);
+			struct poll poll = readline->poll(readline, cx);
+			if (poll.state == POLL_PENDING) {
+				return (struct poll){ .state = POLL_PENDING,
+						      .output = NULL,
+						      .free = NULL };
+			}
 
-      if (result->len <= 0) {
-        readline->free(readline);
-        break;
-      }
+			struct readline_data *result =
+				(struct readline_data *)poll.output;
+			size_t len = result->len;
 
-      write(cfd, result->lines, result->len);
-      fsync(cfd);
+			if (result->len <= 0) {
+				readline->free(readline);
+				break;
+			}
 
-      printf("Echo (%d): %s", cfd, result->lines);
-      readline->free(readline);
-    }
+			write(cfd, result->lines, result->len);
+			fsync(cfd);
+
+			printf("Echo (%d): %s", cfd, result->lines);
+			readline->free(readline);
+		}
 	}
 
 	printf("Close (%d)\n", cfd);
 
-	return (struct poll){ .state = POLL_READY, .output = NULL, .free = NULL };
+	return (struct poll){ .state = POLL_READY,
+			      .output = NULL,
+			      .free = NULL };
 }

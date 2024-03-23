@@ -1,7 +1,7 @@
+#include "../future.h"
+#include "../futures/readline.h"
+#include "../scheduler/io_selector.h"
 #include "async_reader.h"
-#include "io_selector.h"
-#include "future.h"
-#include "futures/readline.h"
 
 #include <sys/epoll.h>
 #include <error.h>
@@ -56,11 +56,12 @@ void async_reader_free(struct async_reader *reader)
 	free(reader);
 }
 
-struct future *async_reader_readline(struct async_reader *reader) {
-  if (!reader) {
-    perror("async_reader_readline: reader is NULL");
-    exit(EXIT_FAILURE);
-  }
+struct future *async_reader_readline(struct async_reader *reader)
+{
+	if (!reader) {
+		perror("async_reader_readline: reader is NULL");
+		exit(EXIT_FAILURE);
+	}
 
-  return readline_init(reader->selector, reader->cfd);
+	return readline_init(reader->selector, reader->cfd);
 }

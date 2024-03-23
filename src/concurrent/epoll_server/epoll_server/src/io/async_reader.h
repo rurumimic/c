@@ -3,9 +3,10 @@
 
 #include <stddef.h>
 
-#define MAX_CHARS 1024
+#include "../future.h"
+#include "../scheduler/io_selector.h"
 
-struct io_selector;
+#define MAX_CHARS 1024
 
 struct async_reader {
 	// ref
