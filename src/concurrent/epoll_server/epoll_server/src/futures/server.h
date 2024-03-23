@@ -9,6 +9,7 @@
 
 enum async_server_state {
 	SERVER_LISTENING,
+  SERVER_ACCEPTED,
 };
 
 struct server_data {

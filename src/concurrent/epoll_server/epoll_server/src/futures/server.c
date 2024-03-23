@@ -102,6 +102,8 @@ struct poll server_poll(struct future *f, struct context cx)
 						      .free = NULL };
 			}
 
+      server->state = SERVER_ACCEPTED;
+
 			struct accept_data *result =
 				(struct accept_data *)poll.output;
 			int cfd = result->cfd;
@@ -112,6 +114,8 @@ struct poll server_poll(struct future *f, struct context cx)
 			// move reader to echo
 			spawner_spawn(spawner, echo_init(async_reader_init(
 						       selector, cfd)));
+
+      server->state = SERVER_LISTENING;
 		}
 	}
 

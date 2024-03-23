@@ -83,6 +83,7 @@ struct poll echo_poll(struct future *f, struct context cx)
 
 			struct readline_data *result =
 				(struct readline_data *)poll.output;
+
 			size_t len = result->len;
 
 			if (result->len <= 0) {
@@ -90,11 +91,15 @@ struct poll echo_poll(struct future *f, struct context cx)
 				break;
 			}
 
+      echo->state = ECHO_WRITING;
+
 			write(cfd, result->lines, result->len);
 			fsync(cfd);
 
 			printf("Echo (%d): %s", cfd, result->lines);
 			readline->free(readline);
+
+      echo->state = ECHO_READING;
 		}
 	}
 
