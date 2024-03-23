@@ -117,7 +117,21 @@ void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
 	}
 
 	if (!wakers_find(wakers, fd)) {
-		wakers_insert(wakers, fd, waker);
+		if (wakers_insert(wakers, fd, waker) < 1) {
+			struct epoll_event ev;
+
+			ev.events = 0;
+			ev.data.fd = fd;
+
+			if (epoll_ctl(s->epfd, EPOLL_CTL_DEL, fd, &ev) == -1) {
+				perror("io_selector_remove_event: epoll_ctl failed to remove event "
+				       "from epoll instance");
+				exit(EXIT_FAILURE);
+			}
+
+			shutdown(fd, SHUT_RDWR);
+			close(fd);
+		}
 	}
 }
 

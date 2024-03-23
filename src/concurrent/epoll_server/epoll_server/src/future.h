@@ -4,9 +4,9 @@
 #include "poll.h"
 
 struct waker {
-	void *ptr; // task
-	void (*wake)(void *data); // queue.push(task)
-	void (*free)(void *data); // task_free
+	void *ptr; // == task
+	void (*wake)(void *data); // channel_send(task)
+	void (*free)(void *data); // free(task)
 };
 
 struct context {

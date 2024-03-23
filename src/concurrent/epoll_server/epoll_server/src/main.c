@@ -13,6 +13,7 @@
 #include "scheduler/io_selector.h"
 
 #define PORT 10000
+#define SIZE 5
 
 volatile sig_atomic_t running = 1;
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
 	struct executor *e = executor_init();
 	struct spawner *spawner = executor_get_spawner(e);
 
-	struct io_selector *selector = io_selector_init(10);
+	struct io_selector *selector = io_selector_init(SIZE);
 	pthread_t tid = io_selector_spawn(selector);
 
 	// Server
