@@ -81,15 +81,10 @@ pthread_t io_selector_spawn(struct io_selector *s)
 }
 
 void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
-			   struct task *task, struct wakers *wakers)
+			   struct waker waker, struct wakers *wakers)
 {
 	if (!s) {
 		perror("io_selector_add_event: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	if (!task) {
-		perror("io_selector_add_event: task is NULL");
 		exit(EXIT_FAILURE);
 	}
 
@@ -122,7 +117,7 @@ void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
 	}
 
 	if (!wakers_find(wakers, fd)) {
-		wakers_insert(wakers, fd, task);
+		wakers_insert(wakers, fd, waker);
 	}
 }
 
@@ -150,10 +145,9 @@ void io_selector_remove_event(struct io_selector *s, int fd,
 		exit(EXIT_FAILURE);
 	}
 
-	struct task *task = wakers_remove(wakers, fd);
-
-	if (task) {
-		task_free(task);
+	struct waker waker = wakers_remove(wakers, fd);
+	if (waker.ptr) {
+		waker.free(waker.ptr);
 	}
 
 	shutdown(fd, SHUT_RDWR);
@@ -238,15 +232,20 @@ void *io_selector_select(void *arg)
 				}
 				pthread_mutex_unlock(&s->queue_mutex);
 			} else {
-				struct task *task = wakers_remove(
+				struct waker waker = wakers_remove(
 					s->wakers, events[i].data.fd);
-				task_wake((void *)task);
+				task_wake(waker.ptr);
 			}
 		}
 		pthread_mutex_unlock(&s->wakers_mutex);
 	}
 
 	free(events);
+
+	pthread_mutex_lock(&cond_mutex);
+	printf("Close: io_selector\n");
+	pthread_cond_broadcast(&cond);
+	pthread_mutex_unlock(&cond_mutex);
 
 	return NULL;
 }

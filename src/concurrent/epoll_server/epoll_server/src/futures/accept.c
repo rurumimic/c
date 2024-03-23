@@ -76,6 +76,11 @@ struct poll accept_poll(struct future *f, struct context cx)
 	}
 
 	struct accept_data *data = (struct accept_data *)f->data;
+  if (!data) {
+    perror("accept_poll: data is NULL");
+    exit(EXIT_FAILURE);
+  }
+
 	struct io_selector *selector = data->selector;
 	int sfd = data->sfd;
 

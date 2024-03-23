@@ -56,15 +56,19 @@ void executor_run(struct executor *e)
 	}
 
 	while (running) {
-		if (channel_is_empty(e->channel)) {
+    while (channel_is_empty(e->channel)) {
       pthread_mutex_lock(&cond_mutex);
       if (pthread_cond_wait(&cond, &cond_mutex) != 0) {
         perror("executor_run: pthread_cond_wait failed");
         exit(EXIT_FAILURE);
       }
       pthread_mutex_unlock(&cond_mutex);
-			continue;
-		}
+
+      if (!running) {
+        printf("Close: executor\n");
+        return;
+      }
+    }
 
 		struct task *t = channel_recv(e->channel);
 
@@ -81,7 +85,7 @@ void executor_run(struct executor *e)
       if (poll.free) {
         poll.free(poll.output);
       }
-      // task_free(t);
+      task_free(t);
 		}
 	}
 }

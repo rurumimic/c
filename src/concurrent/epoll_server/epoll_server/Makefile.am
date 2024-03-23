@@ -6,6 +6,7 @@ server_SOURCES = \
 	src/async_reader.c \
 	src/channel.c \
 	src/executor.c \
+	src/future.c \
 	src/io_queue.c \
 	src/io_selector.c \
 	src/spawner.c \

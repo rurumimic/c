@@ -3,7 +3,13 @@
 
 #include "../future.h"
 
+enum async_echo_state {
+  ECHO_READING,
+};
+
 struct echo_data {
+  enum async_echo_state state;
+
 	// owned
 	struct async_reader *reader;
 
@@ -13,6 +19,6 @@ struct echo_data {
 struct future *echo_init(struct async_reader *reader);
 void echo_free(struct future *f);
 
-enum poll_state echo_poll(struct future *f, struct channel *c);
+struct poll echo_poll(struct future *f, struct context cx);
 
 #endif // _ECHO_H

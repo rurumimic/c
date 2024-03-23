@@ -15,5 +15,6 @@ struct async_reader {
 
 struct async_reader *async_reader_init(struct io_selector *selector, int cfd);
 void async_reader_free(struct async_reader *reader);
+struct future *async_reader_readline(struct async_reader *reader);
 
 #endif // !_ASYNC_READER_H

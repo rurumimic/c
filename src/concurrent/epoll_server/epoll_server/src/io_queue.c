@@ -33,8 +33,8 @@ void io_queue_free(struct io_queue *q)
 		struct io_queue_node *next = node->next;
 
 		if (node->ops) {
-			if (node->ops->task) {
-				task_free(node->ops->task);
+			if (node->ops->waker.ptr) {
+        node->ops->waker.free(node->ops->waker.ptr);
 			}
 			free(node->ops);
 		}

@@ -31,7 +31,9 @@ struct wakers *wakers_init(size_t capacity)
 	for (size_t i = 0; i < capacity; i++) {
 		wakers->nodes[i].state = WAKERS_NODE_EMPTY;
 		wakers->nodes[i].key = -1;
-		wakers->nodes[i].task = NULL;
+		wakers->nodes[i].waker = (struct waker){ .ptr = NULL,
+							 .wake = NULL,
+							 .free = NULL };
 	}
 
 	return wakers;
@@ -46,7 +48,12 @@ void wakers_free(struct wakers *w)
 
 	for (size_t i = 0; i < w->capacity; i++) {
 		if (w->nodes[i].state == WAKERS_NODE_USED) {
-			task_free((void *)w->nodes[i].task);
+			w->nodes[i].waker.free(w->nodes[i].waker.ptr);
+			w->nodes[i].waker.ptr = NULL;
+			w->nodes[i].waker.wake = NULL;
+			w->nodes[i].waker.free = NULL;
+			w->nodes[i].state = WAKERS_NODE_DELETED;
+			w->nodes[i].key = -1;
 		}
 	}
 
@@ -64,15 +71,10 @@ int wakers_hash_function(int key, size_t capacity)
 	return key % capacity;
 }
 
-int wakers_insert(struct wakers *w, int key, struct task *task)
+int wakers_insert(struct wakers *w, int key, struct waker waker)
 {
 	if (!w) {
 		perror("wakers_insert: wakers is NULL");
-		return -1;
-	}
-
-	if (!task) {
-		perror("wakers_insert: task is NULL");
 		return -1;
 	}
 
@@ -97,7 +99,7 @@ int wakers_insert(struct wakers *w, int key, struct task *task)
 		    node->state == WAKERS_NODE_DELETED) {
 			node->state = WAKERS_NODE_USED;
 			node->key = key;
-			node->task = task;
+			node->waker = waker;
 
 			w->length++;
 			return 1;
@@ -150,25 +152,29 @@ struct wakers_node *wakers_find(struct wakers *w, int key)
 	return NULL;
 }
 
-struct task *wakers_remove(struct wakers *w, int key)
+struct waker wakers_remove(struct wakers *w, int key)
 {
 	if (!w) {
 		perror("wakers_remove: wakers is NULL");
-		return NULL;
+		return (struct waker){ .ptr = NULL,
+				       .wake = NULL,
+				       .free = NULL };
 	}
 
 	struct wakers_node *node = wakers_find(w, key);
 	if (!node) {
-		return NULL;
+		return (struct waker){ .ptr = NULL,
+				       .wake = NULL,
+				       .free = NULL };
 	}
 
-	struct task *task = node->task;
+	struct waker waker = node->waker;
 
 	node->state = WAKERS_NODE_DELETED;
 	node->key = -1;
-	node->task = NULL;
+	node->waker = (struct waker){ .ptr = NULL, .wake = NULL, .free = NULL };
 
 	w->length--;
 
-	return task;
+	return waker;
 }

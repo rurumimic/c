@@ -9,10 +9,10 @@
 #include "../channel.h"
 #include "../io_selector.h"
 
+
 struct readline_data {
 	// ref
 	struct io_selector *selector;
-	struct future *echo;
 	int cfd;
 
 	// owned
@@ -20,10 +20,8 @@ struct readline_data {
 	size_t len;
 };
 
-struct future *readline_init(struct future *echo, struct io_selector *selector,
-			     int cfd);
+struct future *readline_init(struct io_selector *selector, int cfd);
 void readline_free(struct future *f);
-
-enum poll_state readline_poll(struct future *f, struct channel *c);
+struct poll readline_poll(struct future *f, struct context cx);
 
 #endif // !_READLINE_H

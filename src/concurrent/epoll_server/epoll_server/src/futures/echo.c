@@ -22,13 +22,13 @@ struct future *echo_init(struct async_reader *reader)
 		exit(EXIT_FAILURE);
 	}
 
-	struct echo_data *data =
-		(struct echo_data *)malloc(sizeof(struct echo_data));
+	struct echo_data *data = (struct echo_data *)malloc(sizeof(struct echo_data));
 
+  data->state = ECHO_READING;
 	data->reader = reader;
 
-	f->poll = echo_poll;
 	f->data = data;
+	f->poll = echo_poll;
 	f->free = echo_free;
 
 	return f;
@@ -52,58 +52,49 @@ void echo_free(struct future *f)
 	free(f);
 }
 
-enum poll_state echo_poll(struct future *f, struct channel *c)
+struct poll echo_poll(struct future *f, struct context cx)
 {
 	if (!f) {
 		perror("echo_poll: future is NULL");
 		exit(EXIT_FAILURE);
 	}
 
-	if (!c) {
-		perror("echo_poll: channel is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	struct echo_data *data = (struct echo_data *)f->data;
-	if (!data) {
+	struct echo_data *echo = (struct echo_data *)f->data;
+	if (!echo) {
 		perror("echo_poll: data is NULL");
 		exit(EXIT_FAILURE);
 	}
 
-	struct async_reader *reader = data->reader;
+	struct async_reader *reader = echo->reader;
 	int cfd = reader->cfd;
 
 	struct io_selector *selector = reader->selector;
 
 	while (running) {
-		struct future *readline = readline_init(f, selector, cfd);
+    if (echo->state == ECHO_READING) {
+      struct future *readline = async_reader_readline(reader);
+      struct poll poll = readline->poll(readline, cx);
+      if (poll.state == POLL_PENDING) {
+        return (struct poll){.state = POLL_PENDING, .output = NULL, .free = NULL};
+      }
+      
+      struct readline_data *result = (struct readline_data *)poll.output;
+      size_t len = result->len;
 
-		enum poll_state readline_state = readline->poll(readline, c);
-		if (readline_state == POLL_PENDING) {
-			return POLL_PENDING;
-		}
+      if (result->len <= 0) {
+        readline->free(readline);
+        break;
+      }
 
-		struct readline_data *result =
-			(struct readline_data *)readline->data;
+      write(cfd, result->lines, result->len);
+      fsync(cfd);
 
-		if (!result) {
-			perror("echo_poll: result is NULL");
-			exit(EXIT_FAILURE);
-		}
-
-		if (result->len <= 0) {
-			readline_free(readline);
-			break;
-		}
-
-		write(cfd, result->lines, result->len);
-		fsync(cfd);
-
-		printf("Echo (%d): %s", cfd, result->lines);
-		readline_free(readline);
+      printf("Echo (%d): %s", cfd, result->lines);
+      readline->free(readline);
+    }
 	}
 
 	printf("Close (%d)\n", cfd);
 
-	return POLL_READY;
+	return (struct poll){ .state = POLL_READY, .output = NULL, .free = NULL };
 }
