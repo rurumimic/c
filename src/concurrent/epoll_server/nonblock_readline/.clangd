@@ -1,0 +1,11 @@
+CompileFlags:
+  Add:
+    - -std=gnu99
+    - -Ibuild
+Diagnostics:
+  ClangTidy:
+    Add: 
+      - modernize-*
+      - clang-analyzer-*
+      - linuxkernel-*
+

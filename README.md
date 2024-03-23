@@ -1,6 +1,2 @@
 # C
 
-- Env
-- System
-- Debug
-

@@ -1,0 +1,10 @@
+CompileFlags:
+  Add:
+    - -std=c99
+    - -Ibuild
+Diagnostics:
+  ClangTidy:
+    Add: 
+      - modernize-*
+      - clang-analyzer-*
+
