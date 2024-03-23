@@ -5,14 +5,14 @@
 #include "wakers.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <fcntl.h>
+#include <unistd.h>
 
 struct io_selector *io_selector_init(size_t epoll_size)
 {

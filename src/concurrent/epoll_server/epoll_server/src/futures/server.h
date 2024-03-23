@@ -12,14 +12,13 @@ enum async_server_state {
 };
 
 struct server_data {
+	// owned
 	enum async_server_state state;
+	struct async_listener *listener;
 
 	// ref
 	struct io_selector *selector;
 	struct spawner *spawner; // from main
-
-	// owned
-	struct async_listener *listener;
 };
 
 struct future *server_init(int port, struct io_selector *selector,

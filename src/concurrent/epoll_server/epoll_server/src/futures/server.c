@@ -1,9 +1,9 @@
 #include "../future.h"
 #include "../global.h"
 #include "../io/async_listener.h"
+#include "../io/async_reader.h"
 #include "../scheduler/spawner.h"
 #include "accept.h"
-#include "../io/async_reader.h"
 #include "echo.h"
 #include "server.h"
 
@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#define REQUEST_SIZE 10
 
 struct future *server_init(int port, struct io_selector *selector,
 			   struct spawner *spawner)
@@ -43,7 +45,7 @@ struct future *server_init(int port, struct io_selector *selector,
 
 	struct async_listener *listener = async_listener_init(port, selector);
 
-	if (listen(listener->sfd, 10) < 0) {
+	if (listen(listener->sfd, REQUEST_SIZE) < 0) {
 		perror("server: listen failed");
 		exit(EXIT_FAILURE);
 	}

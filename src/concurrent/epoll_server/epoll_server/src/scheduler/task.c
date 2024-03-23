@@ -14,10 +14,10 @@ struct task *task_init(struct future *f, struct channel *c)
 		return NULL;
 	}
 
-  if (!c) {
-    perror("task_init: channel is NULL");
-    return NULL;
-  }
+	if (!c) {
+		perror("task_init: channel is NULL");
+		return NULL;
+	}
 
 	struct task *t = (struct task *)malloc(sizeof(struct task));
 
@@ -27,7 +27,7 @@ struct task *task_init(struct future *f, struct channel *c)
 	}
 
 	t->future = f;
-  t->channel = c;
+	t->channel = c;
 	pthread_mutex_init(&t->mutex, NULL);
 
 	return t;
@@ -42,7 +42,7 @@ void task_free(void *ptr)
 
 	struct task *t = (struct task *)ptr;
 
-  t->channel = NULL;
+	t->channel = NULL;
 
 	if (t->future) {
 		t->future->free(t->future);
@@ -59,7 +59,7 @@ void task_wake(void *ptr)
 		return;
 	}
 
-  struct task *t = (struct task *)ptr;
+	struct task *t = (struct task *)ptr;
 
 	pthread_mutex_lock(&cond_mutex);
 	channel_send(t->channel, t);

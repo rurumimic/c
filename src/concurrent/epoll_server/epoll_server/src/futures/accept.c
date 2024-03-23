@@ -5,17 +5,17 @@
 #include "../scheduler/channel.h"
 #include "accept.h"
 
+#include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
 
 struct future *accept_init(struct io_selector *selector, int sfd)
 {

@@ -1,17 +1,17 @@
 #include "../future.h"
-#include "../scheduler/io_selector.h"
 #include "../futures/accept.h"
+#include "../scheduler/io_selector.h"
 #include "async_listener.h"
 #include "async_reader.h"
 
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/epoll.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
+#include <unistd.h>
 
 struct async_listener *async_listener_init(int port,
 					   struct io_selector *selector)

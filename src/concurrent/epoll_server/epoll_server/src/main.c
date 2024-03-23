@@ -13,7 +13,7 @@
 #include "scheduler/io_selector.h"
 
 #define PORT 10000
-#define SIZE 5
+#define SIZE 10
 
 volatile sig_atomic_t running = 1;
 

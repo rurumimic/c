@@ -3,14 +3,14 @@
 #include "../scheduler/io_selector.h"
 #include "async_reader.h"
 
-#include <sys/epoll.h>
 #include <error.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
+#include <sys/epoll.h>
+#include <unistd.h>
 
 struct async_reader *async_reader_init(struct io_selector *selector, int cfd)
 {
