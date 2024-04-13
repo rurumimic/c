@@ -83,6 +83,8 @@ void channel_send(struct channel *channel, struct task *task)
 	node->task = task;
 	node->next = NULL;
 
+	pthread_mutex_lock(&channel->cond_mutex);
+
 	if (channel->front) {
 		channel->rear->next = node;
 		channel->rear = node;
@@ -92,6 +94,9 @@ void channel_send(struct channel *channel, struct task *task)
 	}
 
 	channel->length++;
+
+	pthread_cond_broadcast(&channel->cond);
+	pthread_mutex_unlock(&channel->cond_mutex);
 }
 
 struct task *channel_recv(struct channel *channel)

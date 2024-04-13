@@ -11,9 +11,10 @@
 
 struct spawner *spawner_init(struct channel *channel)
 {
-  assert(channel != NULL);
+	assert(channel != NULL);
 
-	struct spawner *spawner = (struct spawner *)malloc(sizeof(struct spawner));
+	struct spawner *spawner =
+		(struct spawner *)malloc(sizeof(struct spawner));
 
 	if (!spawner) {
 		perror("spawner_init: malloc failed to allocate spawner");
@@ -27,20 +28,17 @@ struct spawner *spawner_init(struct channel *channel)
 
 void spawner_free(struct spawner *spawner)
 {
-  assert(spawner != NULL);
+	assert(spawner != NULL);
 
 	free(spawner);
 }
 
 void spawner_spawn(struct spawner *spawner, struct future *future)
 {
-  assert(spawner != NULL);
-  assert(future != NULL);
+	assert(spawner != NULL);
+	assert(future != NULL);
 
 	struct task *task = task_init(future, spawner->channel);
 
-	pthread_mutex_lock(&task->channel->cond_mutex);
 	channel_send(spawner->channel, task);
-	pthread_cond_broadcast(&task->channel->cond);
-	pthread_mutex_unlock(&task->channel->cond_mutex);
 }
