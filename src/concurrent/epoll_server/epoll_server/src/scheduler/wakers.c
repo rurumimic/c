@@ -141,9 +141,9 @@ struct wakers_node *wakers_find(struct wakers *wakers, int key)
 
 struct waker wakers_remove(struct wakers *w, int key)
 {
-	struct waker empty_waker = { .ptr = NULL, .wake = NULL, .free = NULL };
-
   assert(w != NULL);
+
+	struct waker empty_waker = { .ptr = NULL, .wake = NULL, .free = NULL };
 
 	struct wakers_node *node = wakers_find(w, key);
 	if (!node) {
