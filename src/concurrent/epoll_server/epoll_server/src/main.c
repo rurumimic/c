@@ -17,8 +17,8 @@
 
 volatile sig_atomic_t running = 1;
 
-pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+// pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
+// pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static void handler(int signum)
 {
@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 	io_selector_free(selector);
 	spawner_free(spawner);
 	executor_free(executor);
-	pthread_mutex_destroy(&cond_mutex);
-	pthread_cond_destroy(&cond);
+	// pthread_mutex_destroy(&cond_mutex);
+	// pthread_cond_destroy(&cond);
 
 	printf("Goodbye.\n");
 

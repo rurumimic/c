@@ -13,7 +13,8 @@
 
 struct executor *executor_init(void)
 {
-	struct executor *executor = (struct executor *)malloc(sizeof(struct executor));
+	struct executor *executor =
+		(struct executor *)malloc(sizeof(struct executor));
 
 	if (!executor) {
 		perror("executor_init: malloc failed to allocate executor");
@@ -27,7 +28,7 @@ struct executor *executor_init(void)
 
 void executor_free(struct executor *executor)
 {
-  assert(executor != NULL);
+	assert(executor != NULL);
 
 	if (executor->channel) {
 		channel_free(executor->channel);
@@ -38,40 +39,26 @@ void executor_free(struct executor *executor)
 
 struct spawner *executor_get_spawner(struct executor *executor)
 {
-  assert(executor != NULL);
+	assert(executor != NULL);
 
 	return spawner_init(executor->channel);
 }
 
 void executor_run(struct executor *executor)
 {
-  assert(executor != NULL);
+	assert(executor != NULL);
 
-	while (running) {
-		while (channel_is_empty(executor->channel)) {
-			pthread_mutex_lock(&cond_mutex);
-			if (pthread_cond_wait(&cond, &cond_mutex) != 0) {
-				perror("executor_run: pthread_cond_wait failed");
-				exit(EXIT_FAILURE);
-			}
-			pthread_mutex_unlock(&cond_mutex);
+	struct task *task = NULL;
 
-			if (!running) {
-				printf("Close: executor\n");
-				return;
-			}
-		}
-
-		struct task *task = channel_recv(executor->channel);
-
-		pthread_mutex_lock(&task->mutex);
-
+	while (running && (task = channel_recv(executor->channel)) != NULL) {
 		struct waker waker = { .ptr = task,
 				       .wake = task_wake,
 				       .free = task_free };
-		struct context cx = from_waker(waker);
+		struct context context = from_waker(waker);
 
-		struct poll poll = task->future->poll(task->future, cx);
+		pthread_mutex_lock(&task->mutex);
+
+		struct poll poll = task->future->poll(task->future, context);
 
 		pthread_mutex_unlock(&task->mutex);
 
@@ -82,4 +69,6 @@ void executor_run(struct executor *executor)
 			task_free(task);
 		}
 	}
+
+	printf("Close: executor\n");
 }
