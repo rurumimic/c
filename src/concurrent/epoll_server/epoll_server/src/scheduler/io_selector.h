@@ -21,19 +21,19 @@ struct io_selector {
 };
 
 struct io_selector *io_selector_init(size_t epoll_size);
-void io_selector_free(struct io_selector *s);
+void io_selector_free(struct io_selector *selector);
 
-pthread_t io_selector_spawn(struct io_selector *s);
+pthread_t io_selector_spawn(struct io_selector *selector);
 
-void io_selector_add_event(struct io_selector *s, uint32_t flags, int fd,
+void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 			   struct waker waker, struct wakers *wakers);
-void io_selector_remove_event(struct io_selector *s, int fd,
+void io_selector_remove_event(struct io_selector *selector, int fd,
 			      struct wakers *wakers);
 
 void *io_selector_select(void *arg);
 
-void io_selector_register(struct io_selector *s, uint32_t flags, int fd,
+void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 			  struct waker waker);
-void io_selector_unregister(struct io_selector *s, int fd);
+void io_selector_unregister(struct io_selector *selector, int fd);
 
 #endif // _IO_SELECTOR_H

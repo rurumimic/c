@@ -6,28 +6,28 @@
 
 struct channel *channel_init(void)
 {
-	struct channel *c = (struct channel *)malloc(sizeof(struct channel));
+	struct channel *channel = (struct channel *)malloc(sizeof(struct channel));
 
-	if (!c) {
+	if (!channel) {
 		perror("channel_init: malloc failed to allocate channel");
 		exit(EXIT_FAILURE);
 	}
 
-	c->front = NULL;
-	c->rear = NULL;
-	c->length = 0;
+	channel->front = NULL;
+	channel->rear = NULL;
+	channel->length = 0;
 
-	return c;
+	return channel;
 }
 
-void channel_free(struct channel *c)
+void channel_free(struct channel *channel)
 {
-	if (!c) {
+	if (!channel) {
 		perror("channel_free: channel is NULL");
 		return;
 	}
 
-	struct channel_node *node = c->front;
+	struct channel_node *node = channel->front;
 
 	while (node) {
 		struct channel_node *next = node->next;
@@ -41,35 +41,35 @@ void channel_free(struct channel *c)
 		node = next;
 	}
 
-	free(c);
+	free(channel);
 }
 
-int channel_is_empty(struct channel *c)
+int channel_is_empty(struct channel *channel)
 {
-	if (!c) {
+	if (!channel) {
 		perror("channel_is_empty: channel is NULL");
 		return 1;
 	}
 
-	return c->length == 0;
+	return channel->length == 0;
 }
 
-struct task *channel_peek(struct channel *c)
+struct task *channel_peek(struct channel *channel)
 {
-	if (!c) {
+	if (!channel) {
 		return NULL;
 	}
 
-	if (!c->front) {
+	if (!channel->front) {
 		return NULL;
 	}
 
-	return c->front->task;
+	return channel->front->task;
 }
 
-void channel_send(struct channel *c, struct task *task)
+void channel_send(struct channel *channel, struct task *task)
 {
-	if (!c) {
+	if (!channel) {
 		perror("channel_send: channel is NULL");
 		return;
 	}
@@ -90,25 +90,25 @@ void channel_send(struct channel *c, struct task *task)
 	node->task = task;
 	node->next = NULL;
 
-	if (c->front) {
-		c->rear->next = node;
-		c->rear = node;
+	if (channel->front) {
+		channel->rear->next = node;
+		channel->rear = node;
 	} else {
-		c->front = node;
-		c->rear = node;
+		channel->front = node;
+		channel->rear = node;
 	}
 
-	c->length++;
+	channel->length++;
 }
 
-struct task *channel_recv(struct channel *c)
+struct task *channel_recv(struct channel *channel)
 {
-	if (!c) {
+	if (!channel) {
 		perror("channel_recv: channel is NULL");
 		return NULL;
 	}
 
-	struct channel_node *node = c->front;
+	struct channel_node *node = channel->front;
 
 	if (!node) {
 		return NULL;
@@ -116,11 +116,11 @@ struct task *channel_recv(struct channel *c)
 
 	struct task *task = node->task;
 
-	c->front = node->next;
-	c->length--;
+	channel->front = node->next;
+	channel->length--;
 
-	if (!c->front) {
-		c->rear = NULL;
+	if (!channel->front) {
+		channel->rear = NULL;
 	}
 
 	free(node);

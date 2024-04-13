@@ -24,7 +24,7 @@ struct server_data {
 
 struct future *server_init(int port, struct io_selector *selector,
 			   struct spawner *spawner);
-void server_free(struct future *f);
-struct poll server_poll(struct future *f, struct context cx);
+void server_free(struct future *future);
+struct poll server_poll(struct future *future, struct context context);
 
 #endif // _SERVER_H

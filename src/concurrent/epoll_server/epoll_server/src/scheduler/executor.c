@@ -12,51 +12,51 @@
 
 struct executor *executor_init(void)
 {
-	struct executor *e = (struct executor *)malloc(sizeof(struct executor));
+	struct executor *executor = (struct executor *)malloc(sizeof(struct executor));
 
-	if (!e) {
+	if (!executor) {
 		perror("executor_init: malloc failed to allocate executor");
 		exit(EXIT_FAILURE);
 	}
 
-	e->channel = channel_init();
+	executor->channel = channel_init();
 
-	return e;
+	return executor;
 }
 
-void executor_free(struct executor *e)
+void executor_free(struct executor *executor)
 {
-	if (!e) {
+	if (!executor) {
 		perror("executor_free: executor is NULL");
 		return;
 	}
 
-	if (e->channel) {
-		channel_free(e->channel);
+	if (executor->channel) {
+		channel_free(executor->channel);
 	}
 
-	free(e);
+	free(executor);
 }
 
-struct spawner *executor_get_spawner(struct executor *e)
+struct spawner *executor_get_spawner(struct executor *executor)
 {
-	if (!e) {
+	if (!executor) {
 		perror("executor_get_spawner: executor is NULL");
 		return NULL;
 	}
 
-	return spawner_init(e->channel);
+	return spawner_init(executor->channel);
 }
 
-void executor_run(struct executor *e)
+void executor_run(struct executor *executor)
 {
-	if (!e) {
+	if (!executor) {
 		perror("executor_run: executor is NULL");
 		return;
 	}
 
 	while (running) {
-		while (channel_is_empty(e->channel)) {
+		while (channel_is_empty(executor->channel)) {
 			pthread_mutex_lock(&cond_mutex);
 			if (pthread_cond_wait(&cond, &cond_mutex) != 0) {
 				perror("executor_run: pthread_cond_wait failed");
@@ -70,24 +70,24 @@ void executor_run(struct executor *e)
 			}
 		}
 
-		struct task *t = channel_recv(e->channel);
+		struct task *task = channel_recv(executor->channel);
 
-		pthread_mutex_lock(&t->mutex);
+		pthread_mutex_lock(&task->mutex);
 
-		struct waker waker = { .ptr = t,
+		struct waker waker = { .ptr = task,
 				       .wake = task_wake,
 				       .free = task_free };
 		struct context cx = from_waker(waker);
 
-		struct poll poll = t->future->poll(t->future, cx);
+		struct poll poll = task->future->poll(task->future, cx);
 
-		pthread_mutex_unlock(&t->mutex);
+		pthread_mutex_unlock(&task->mutex);
 
 		if (poll.state == POLL_READY) {
 			if (poll.free) {
 				poll.free(poll.output);
 			}
-			task_free(t);
+			task_free(task);
 		}
 	}
 }

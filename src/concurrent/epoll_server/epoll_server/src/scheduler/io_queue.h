@@ -29,10 +29,10 @@ struct io_queue {
 };
 
 struct io_queue *io_queue_init(void);
-void io_queue_free(struct io_queue *q);
+void io_queue_free(struct io_queue *queue);
 
-int io_queue_is_empty(struct io_queue *q);
-void io_queue_send(struct io_queue *q, struct io_ops *ops);
-struct io_ops *io_queue_recv(struct io_queue *q);
+int io_queue_is_empty(struct io_queue *queue);
+void io_queue_send(struct io_queue *queue, struct io_ops *ops);
+struct io_ops *io_queue_recv(struct io_queue *queue);
 
 #endif // _IO_QUEUE_H

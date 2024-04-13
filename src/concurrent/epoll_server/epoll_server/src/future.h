@@ -15,7 +15,7 @@ struct context {
 
 struct future {
 	void *data; // server, accept, echo, readline
-	struct poll (*poll)(struct future *f, struct context cx);
+	struct poll (*poll)(struct future *future, struct context context);
 	void (*free)(struct future *f);
 };
 

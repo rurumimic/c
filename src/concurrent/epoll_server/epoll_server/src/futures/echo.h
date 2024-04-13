@@ -17,8 +17,8 @@ struct echo_data {
 };
 
 struct future *echo_init(struct async_reader *reader);
-void echo_free(struct future *f);
+void echo_free(struct future *future);
 
-struct poll echo_poll(struct future *f, struct context cx);
+struct poll echo_poll(struct future *future, struct context context);
 
 #endif // _ECHO_H

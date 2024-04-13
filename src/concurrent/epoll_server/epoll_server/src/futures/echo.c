@@ -15,9 +15,9 @@ struct future *echo_init(struct async_reader *reader)
 		exit(EXIT_FAILURE);
 	}
 
-	struct future *f = (struct future *)malloc(sizeof(struct future));
+	struct future *future = (struct future *)malloc(sizeof(struct future));
 
-	if (!f) {
+	if (!future) {
 		perror("echo_init: malloc failed to allocate echo");
 		exit(EXIT_FAILURE);
 	}
@@ -28,21 +28,21 @@ struct future *echo_init(struct async_reader *reader)
 	data->state = ECHO_READING;
 	data->reader = reader;
 
-	f->data = data;
-	f->poll = echo_poll;
-	f->free = echo_free;
+	future->data = data;
+	future->poll = echo_poll;
+	future->free = echo_free;
 
-	return f;
+	return future;
 }
 
-void echo_free(struct future *f)
+void echo_free(struct future *future)
 {
-	if (!f) {
+	if (!future) {
 		perror("echo_free: future is NULL");
 		return;
 	}
 
-	struct echo_data *data = (struct echo_data *)f->data;
+	struct echo_data *data = (struct echo_data *)future->data;
 	if (data) {
 		async_reader_free(data->reader);
 		free(data);
@@ -50,17 +50,17 @@ void echo_free(struct future *f)
 		perror("echo_free: data is NULL");
 	}
 
-	free(f);
+	free(future);
 }
 
-struct poll echo_poll(struct future *f, struct context cx)
+struct poll echo_poll(struct future *future, struct context context)
 {
-	if (!f) {
+	if (!future) {
 		perror("echo_poll: future is NULL");
 		exit(EXIT_FAILURE);
 	}
 
-	struct echo_data *echo = (struct echo_data *)f->data;
+	struct echo_data *echo = (struct echo_data *)future->data;
 	if (!echo) {
 		perror("echo_poll: data is NULL");
 		exit(EXIT_FAILURE);
@@ -74,7 +74,7 @@ struct poll echo_poll(struct future *f, struct context cx)
 	while (running) {
 		if (echo->state == ECHO_READING) {
 			struct future *readline = async_reader_readline(reader);
-			struct poll poll = readline->poll(readline, cx);
+			struct poll poll = readline->poll(readline, context);
 			if (poll.state == POLL_PENDING) {
 				return (struct poll){ .state = POLL_PENDING,
 						      .output = NULL,

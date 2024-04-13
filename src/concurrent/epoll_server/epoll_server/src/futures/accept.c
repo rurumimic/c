@@ -24,9 +24,9 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 		exit(EXIT_FAILURE);
 	}
 
-	struct future *f = (struct future *)malloc(sizeof(struct future));
+	struct future *future = (struct future *)malloc(sizeof(struct future));
 
-	if (!f) {
+	if (!future) {
 		perror("accept_init: malloc failed to allocate future");
 		exit(EXIT_FAILURE);
 	}
@@ -44,21 +44,21 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 	data->cfd = 0;
 	memset(data->cip, 0, INET_ADDRSTRLEN);
 
-	f->data = data;
-	f->poll = accept_poll;
-	f->free = accept_free;
+	future->data = data;
+	future->poll = accept_poll;
+	future->free = accept_free;
 
-	return f;
+	return future;
 }
 
-void accept_free(struct future *f)
+void accept_free(struct future *future)
 {
-	if (!f) {
+	if (!future) {
 		perror("accept_free: future is NULL");
 		return;
 	}
 
-	struct accept_data *data = (struct accept_data *)f->data;
+	struct accept_data *data = (struct accept_data *)future->data;
 
 	if (data) {
 		free(data);
@@ -66,17 +66,17 @@ void accept_free(struct future *f)
 		perror("accept_free: data is NULL");
 	}
 
-	free(f);
+	free(future);
 }
 
-struct poll accept_poll(struct future *f, struct context cx)
+struct poll accept_poll(struct future *future, struct context context)
 {
-	if (!f) {
+	if (!future) {
 		perror("accept_poll: future is NULL");
 		exit(EXIT_FAILURE);
 	}
 
-	struct accept_data *data = (struct accept_data *)f->data;
+	struct accept_data *data = (struct accept_data *)future->data;
 	if (!data) {
 		perror("accept_poll: data is NULL");
 		exit(EXIT_FAILURE);
@@ -93,7 +93,7 @@ struct poll accept_poll(struct future *f, struct context cx)
 			 (socklen_t *)&client_addr_size);
 	if (cfd < 0) {
 		if (errno == EWOULDBLOCK) {
-			io_selector_register(selector, EPOLLIN, sfd, cx.waker);
+			io_selector_register(selector, EPOLLIN, sfd, context.waker);
 			return (struct poll){ .state = POLL_PENDING,
 					      .output = NULL,
 					      .free = NULL };

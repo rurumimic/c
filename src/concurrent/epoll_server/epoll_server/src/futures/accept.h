@@ -17,7 +17,7 @@ struct accept_data {
 };
 
 struct future *accept_init(struct io_selector *selector, int sfd);
-void accept_free(struct future *f);
-struct poll accept_poll(struct future *f, struct context cx);
+void accept_free(struct future *future);
+struct poll accept_poll(struct future *future, struct context context);
 
 #endif // _ACCEPT_H

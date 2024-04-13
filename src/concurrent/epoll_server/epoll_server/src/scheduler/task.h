@@ -12,7 +12,7 @@ struct task {
 	pthread_mutex_t mutex;
 };
 
-struct task *task_init(struct future *f, struct channel *c);
+struct task *task_init(struct future *future, struct channel *channel);
 void task_free(void *ptr);
 void task_wake(void *ptr);
 

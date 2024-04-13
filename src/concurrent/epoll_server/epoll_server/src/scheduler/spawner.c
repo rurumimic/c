@@ -8,51 +8,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct spawner *spawner_init(struct channel *c)
+struct spawner *spawner_init(struct channel *channel)
 {
-	if (!c) {
+	if (!channel) {
 		perror("spawner_init: channel is NULL");
 		return NULL;
 	}
 
-	struct spawner *s = (struct spawner *)malloc(sizeof(struct spawner));
+	struct spawner *spawner = (struct spawner *)malloc(sizeof(struct spawner));
 
-	if (!s) {
+	if (!spawner) {
 		perror("spawner_init: malloc failed to allocate spawner");
 		exit(EXIT_FAILURE);
 	}
 
-	s->channel = c;
+	spawner->channel = channel;
 
-	return s;
+	return spawner;
 }
 
-void spawner_free(struct spawner *s)
+void spawner_free(struct spawner *spawner)
 {
-	if (!s) {
+	if (!spawner) {
 		perror("spawner_free: spawner is NULL");
 		return;
 	}
 
-	free(s);
+	free(spawner);
 }
 
-void spawner_spawn(struct spawner *s, struct future *f)
+void spawner_spawn(struct spawner *spawner, struct future *future)
 {
-	if (!s) {
+	if (!spawner) {
 		perror("spawner_spawn: spawner is NULL");
 		return;
 	}
 
-	if (!f) {
+	if (!future) {
 		perror("spawner_spawn: future is NULL");
 		return;
 	}
 
-	struct task *t = task_init(f, s->channel);
+	struct task *task = task_init(future, spawner->channel);
 
 	pthread_mutex_lock(&cond_mutex);
-	channel_send(s->channel, t);
+	channel_send(spawner->channel, task);
 	pthread_cond_broadcast(&cond);
 	pthread_mutex_unlock(&cond_mutex);
 }

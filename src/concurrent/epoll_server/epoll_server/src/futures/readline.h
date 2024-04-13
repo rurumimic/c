@@ -20,7 +20,7 @@ struct readline_data {
 };
 
 struct future *readline_init(struct io_selector *selector, int cfd);
-void readline_free(struct future *f);
-struct poll readline_poll(struct future *f, struct context cx);
+void readline_free(struct future *future);
+struct poll readline_poll(struct future *future, struct context context);
 
 #endif // !_READLINE_H

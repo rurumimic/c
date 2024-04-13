@@ -35,21 +35,21 @@ int main(int argc, char *argv[])
 	printf("Press Ctrl+C to stop the Server.\n");
 
 	// Setup
-	struct executor *e = executor_init();
-	struct spawner *spawner = executor_get_spawner(e);
+	struct executor *executor = executor_init();
+	struct spawner *spawner = executor_get_spawner(executor);
 
 	struct io_selector *selector = io_selector_init(SIZE);
 	pthread_t tid = io_selector_spawn(selector);
 
 	// Server
 	spawner_spawn(spawner, server_init(PORT, selector, spawner));
-	executor_run(e);
+	executor_run(executor);
 
 	// Clean Up
 	pthread_join(tid, NULL);
 	io_selector_free(selector);
 	spawner_free(spawner);
-	executor_free(e);
+	executor_free(executor);
 	pthread_mutex_destroy(&cond_mutex);
 	pthread_cond_destroy(&cond);
 

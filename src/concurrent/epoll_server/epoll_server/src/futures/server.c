@@ -28,9 +28,9 @@ struct future *server_init(int port, struct io_selector *selector,
 		exit(EXIT_FAILURE);
 	}
 
-	struct future *f = (struct future *)malloc(sizeof(struct future));
+	struct future *future = (struct future *)malloc(sizeof(struct future));
 
-	if (!f) {
+	if (!future) {
 		perror("server_init: malloc failed to allocate server");
 		exit(EXIT_FAILURE);
 	}
@@ -55,21 +55,21 @@ struct future *server_init(int port, struct io_selector *selector,
 	data->spawner = spawner;
 	data->listener = listener;
 
-	f->data = data;
-	f->poll = server_poll;
-	f->free = server_free;
+	future->data = data;
+	future->poll = server_poll;
+	future->free = server_free;
 
-	return f;
+	return future;
 }
 
-void server_free(struct future *f)
+void server_free(struct future *future)
 {
-	if (!f) {
+	if (!future) {
 		perror("server_free: future is NULL");
 		return;
 	}
 
-	struct server_data *data = (struct server_data *)f->data;
+	struct server_data *data = (struct server_data *)future->data;
 	if (data) {
 		async_listener_free(data->listener);
 		free(data);
@@ -77,17 +77,17 @@ void server_free(struct future *f)
 		perror("server_free: data is NULL");
 	}
 
-	free(f);
+	free(future);
 }
 
-struct poll server_poll(struct future *f, struct context cx)
+struct poll server_poll(struct future *future, struct context context)
 {
-	if (!f) {
+	if (!future) {
 		perror("server_poll: future is NULL");
 		exit(EXIT_FAILURE);
 	}
 
-	struct server_data *server = (struct server_data *)f->data;
+	struct server_data *server = (struct server_data *)future->data;
 	struct io_selector *selector = server->selector;
 	struct spawner *spawner = server->spawner;
 	struct async_listener *listener = server->listener;
@@ -95,7 +95,7 @@ struct poll server_poll(struct future *f, struct context cx)
 	while (running) {
 		if (server->state == SERVER_LISTENING) {
 			struct future *accept = async_listener_accept(listener);
-			struct poll poll = accept->poll(accept, cx);
+			struct poll poll = accept->poll(accept, context);
 			if (poll.state == POLL_PENDING) {
 				return (struct poll){ .state = POLL_PENDING,
 						      .output = NULL,

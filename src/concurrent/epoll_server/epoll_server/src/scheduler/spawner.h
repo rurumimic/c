@@ -8,8 +8,8 @@ struct spawner {
 	struct channel *channel;
 };
 
-struct spawner *spawner_init(struct channel *c);
-void spawner_free(struct spawner *s);
-void spawner_spawn(struct spawner *s, struct future *f);
+struct spawner *spawner_init(struct channel *channel);
+void spawner_free(struct spawner *spawner);
+void spawner_spawn(struct spawner *spawner, struct future *future);
 
 #endif // _SPAWNER_H

@@ -39,21 +39,21 @@ struct wakers *wakers_init(size_t capacity)
 	return wakers;
 }
 
-void wakers_free(struct wakers *w)
+void wakers_free(struct wakers *wakers)
 {
-	if (!w) {
+	if (!wakers) {
 		perror("wakers_free: wakers is NULL");
 		return;
 	}
 
-	for (size_t i = 0; i < w->capacity; i++) {
-		if (w->nodes[i].state == WAKERS_NODE_USED) {
-			w->nodes[i].waker.free(w->nodes[i].waker.ptr);
+	for (size_t i = 0; i < wakers->capacity; i++) {
+		if (wakers->nodes[i].state == WAKERS_NODE_USED) {
+			wakers->nodes[i].waker.free(wakers->nodes[i].waker.ptr);
 		}
 	}
 
-	free(w->nodes);
-	free(w);
+	free(wakers->nodes);
+	free(wakers);
 }
 
 int wakers_hash_function(int key, size_t capacity)
@@ -66,21 +66,21 @@ int wakers_hash_function(int key, size_t capacity)
 	return key % capacity;
 }
 
-int wakers_insert(struct wakers *w, int key, struct waker waker)
+int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 {
-	if (!w) {
+	if (!wakers) {
 		perror("wakers_insert: wakers is NULL");
 		return -1;
 	}
 
-	if (w->length == w->capacity) {
+	if (wakers->length == wakers->capacity) {
 		perror("wakers_insert: wakers is full");
 		return -1;
 	}
 
-	int index = wakers_hash_function(key, w->capacity);
+	int index = wakers_hash_function(key, wakers->capacity);
 
-	if (index < 0 || index >= w->capacity) {
+	if (index < 0 || index >= wakers->capacity) {
 		perror("wakers_insert: index is out of bounds");
 		return -1;
 	}
@@ -88,7 +88,7 @@ int wakers_insert(struct wakers *w, int key, struct waker waker)
 	int i = index;
 
 	do {
-		struct wakers_node *node = &w->nodes[i];
+		struct wakers_node *node = &wakers->nodes[i];
 
 		if (node->state == WAKERS_NODE_EMPTY ||
 		    node->state == WAKERS_NODE_DELETED) {
@@ -96,7 +96,7 @@ int wakers_insert(struct wakers *w, int key, struct waker waker)
 			node->key = key;
 			node->waker = waker;
 
-			w->length++;
+			wakers->length++;
 			return 1;
 		}
 
@@ -105,7 +105,7 @@ int wakers_insert(struct wakers *w, int key, struct waker waker)
 			return 0;
 		}
 
-		i = wakers_hash_function(i + 1, w->capacity);
+		i = wakers_hash_function(i + 1, wakers->capacity);
 
 	} while (i != index);
 
@@ -113,16 +113,16 @@ int wakers_insert(struct wakers *w, int key, struct waker waker)
 	return 0;
 }
 
-struct wakers_node *wakers_find(struct wakers *w, int key)
+struct wakers_node *wakers_find(struct wakers *wakers, int key)
 {
-	if (!w) {
+	if (!wakers) {
 		perror("wakers_find: wakers is NULL");
 		return NULL;
 	}
 
-	int index = wakers_hash_function(key, w->capacity);
+	int index = wakers_hash_function(key, wakers->capacity);
 
-	if (index < 0 || index >= w->capacity) {
+	if (index < 0 || index >= wakers->capacity) {
 		perror("wakers_find: index is out of bounds");
 		return NULL;
 	}
@@ -130,7 +130,7 @@ struct wakers_node *wakers_find(struct wakers *w, int key)
 	int i = index;
 
 	do {
-		struct wakers_node *node = &w->nodes[i];
+		struct wakers_node *node = &wakers->nodes[i];
 
 		if (node->state == WAKERS_NODE_EMPTY) {
 			return NULL;
@@ -140,7 +140,7 @@ struct wakers_node *wakers_find(struct wakers *w, int key)
 			return node;
 		}
 
-		i = wakers_hash_function(i + 1, w->capacity);
+		i = wakers_hash_function(i + 1, wakers->capacity);
 
 	} while (i != index);
 
