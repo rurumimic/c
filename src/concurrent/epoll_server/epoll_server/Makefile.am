@@ -1,5 +1,7 @@
 bin_PROGRAMS = server
 
+server_LDFLAGS = -lpthread
+
 server_SOURCES = \
 	src/main.c \
 	src/future.c \
