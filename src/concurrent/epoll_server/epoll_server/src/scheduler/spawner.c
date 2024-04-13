@@ -4,16 +4,14 @@
 #include "spawner.h"
 #include "task.h"
 
+#include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 struct spawner *spawner_init(struct channel *channel)
 {
-	if (!channel) {
-		perror("spawner_init: channel is NULL");
-		return NULL;
-	}
+  assert(channel != NULL);
 
 	struct spawner *spawner = (struct spawner *)malloc(sizeof(struct spawner));
 
@@ -29,25 +27,15 @@ struct spawner *spawner_init(struct channel *channel)
 
 void spawner_free(struct spawner *spawner)
 {
-	if (!spawner) {
-		perror("spawner_free: spawner is NULL");
-		return;
-	}
+  assert(spawner != NULL);
 
 	free(spawner);
 }
 
 void spawner_spawn(struct spawner *spawner, struct future *future)
 {
-	if (!spawner) {
-		perror("spawner_spawn: spawner is NULL");
-		return;
-	}
-
-	if (!future) {
-		perror("spawner_spawn: future is NULL");
-		return;
-	}
+  assert(spawner != NULL);
+  assert(future != NULL);
 
 	struct task *task = task_init(future, spawner->channel);
 

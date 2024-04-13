@@ -1,6 +1,7 @@
 #include "channel.h"
 #include "task.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,10 +23,7 @@ struct channel *channel_init(void)
 
 void channel_free(struct channel *channel)
 {
-	if (!channel) {
-		perror("channel_free: channel is NULL");
-		return;
-	}
+  assert(channel != NULL);
 
 	struct channel_node *node = channel->front;
 
@@ -46,19 +44,14 @@ void channel_free(struct channel *channel)
 
 int channel_is_empty(struct channel *channel)
 {
-	if (!channel) {
-		perror("channel_is_empty: channel is NULL");
-		return 1;
-	}
+  assert(channel != NULL);
 
 	return channel->length == 0;
 }
 
 struct task *channel_peek(struct channel *channel)
 {
-	if (!channel) {
-		return NULL;
-	}
+  assert(channel != NULL);
 
 	if (!channel->front) {
 		return NULL;
@@ -69,15 +62,8 @@ struct task *channel_peek(struct channel *channel)
 
 void channel_send(struct channel *channel, struct task *task)
 {
-	if (!channel) {
-		perror("channel_send: channel is NULL");
-		return;
-	}
-
-	if (!task) {
-		perror("channel_send: task is NULL");
-		return;
-	}
+  assert(channel != NULL);
+  assert(task != NULL);
 
 	struct channel_node *node =
 		(struct channel_node *)malloc(sizeof(struct channel_node));
@@ -103,10 +89,7 @@ void channel_send(struct channel *channel, struct task *task)
 
 struct task *channel_recv(struct channel *channel)
 {
-	if (!channel) {
-		perror("channel_recv: channel is NULL");
-		return NULL;
-	}
+  assert(channel != NULL);
 
 	struct channel_node *node = channel->front;
 

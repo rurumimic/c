@@ -7,6 +7,7 @@
 #include "echo.h"
 #include "server.h"
 
+#include <assert.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,15 +19,8 @@
 struct future *server_init(int port, struct io_selector *selector,
 			   struct spawner *spawner)
 {
-	if (!selector) {
-		perror("server_init: selector is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	if (!spawner) {
-		perror("server_init: spawner is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
+  assert(spawner != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -64,10 +58,7 @@ struct future *server_init(int port, struct io_selector *selector,
 
 void server_free(struct future *future)
 {
-	if (!future) {
-		perror("server_free: future is NULL");
-		return;
-	}
+  assert(future != NULL);
 
 	struct server_data *data = (struct server_data *)future->data;
 	if (data) {
@@ -82,10 +73,7 @@ void server_free(struct future *future)
 
 struct poll server_poll(struct future *future, struct context context)
 {
-	if (!future) {
-		perror("server_poll: future is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(future != NULL);
 
 	struct server_data *server = (struct server_data *)future->data;
 	struct io_selector *selector = server->selector;

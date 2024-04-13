@@ -6,6 +6,7 @@
 #include "spawner.h"
 #include "task.h"
 
+#include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,10 +27,7 @@ struct executor *executor_init(void)
 
 void executor_free(struct executor *executor)
 {
-	if (!executor) {
-		perror("executor_free: executor is NULL");
-		return;
-	}
+  assert(executor != NULL);
 
 	if (executor->channel) {
 		channel_free(executor->channel);
@@ -40,20 +38,14 @@ void executor_free(struct executor *executor)
 
 struct spawner *executor_get_spawner(struct executor *executor)
 {
-	if (!executor) {
-		perror("executor_get_spawner: executor is NULL");
-		return NULL;
-	}
+  assert(executor != NULL);
 
 	return spawner_init(executor->channel);
 }
 
 void executor_run(struct executor *executor)
 {
-	if (!executor) {
-		perror("executor_run: executor is NULL");
-		return;
-	}
+  assert(executor != NULL);
 
 	while (running) {
 		while (channel_is_empty(executor->channel)) {

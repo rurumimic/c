@@ -3,6 +3,7 @@
 #include "../scheduler/io_selector.h"
 #include "readline.h"
 
+#include <assert.h>
 #include <error.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -16,10 +17,7 @@
 
 struct future *readline_init(struct io_selector *selector, int cfd)
 {
-	if (!selector) {
-		perror("readline: selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -49,10 +47,7 @@ struct future *readline_init(struct io_selector *selector, int cfd)
 
 void readline_free(struct future *future)
 {
-	if (!future) {
-		perror("readline_free: future is NULL");
-		return;
-	}
+  assert(future != NULL);
 
 	struct readline_data *data = (struct readline_data *)future->data;
 
@@ -67,10 +62,7 @@ void readline_free(struct future *future)
 
 struct poll readline_poll(struct future *future, struct context context)
 {
-	if (!future) {
-		perror("readline_poll: future is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(future != NULL);
 
 	struct readline_data *data = (struct readline_data *)future->data;
 	if (!data) {

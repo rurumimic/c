@@ -1,6 +1,7 @@
 #include "io_queue.h"
 #include "task.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,10 +23,7 @@ struct io_queue *io_queue_init(void)
 
 void io_queue_free(struct io_queue *queue)
 {
-	if (!queue) {
-		perror("io_queue_free: io_queue is NULL");
-		return;
-	}
+  assert(queue != NULL);
 
 	struct io_queue_node *node = queue->front;
 
@@ -48,25 +46,15 @@ void io_queue_free(struct io_queue *queue)
 
 int io_queue_is_empty(struct io_queue *queue)
 {
-	if (!queue) {
-		perror("io_queue_is_empty: io_queue is NULL");
-		return 1;
-	}
+  assert(queue != NULL);
 
 	return queue->length == 0;
 }
 
 void io_queue_send(struct io_queue *queue, struct io_ops *ops)
 {
-	if (!queue) {
-		perror("io_queue_send: io_queue is NULL");
-		return;
-	}
-
-	if (!ops) {
-		perror("io_queue_send: io_ops is NULL");
-		return;
-	}
+  assert(queue != NULL);
+  assert(ops != NULL);
 
 	struct io_queue_node *node =
 		(struct io_queue_node *)malloc(sizeof(struct io_queue_node));
@@ -92,10 +80,7 @@ void io_queue_send(struct io_queue *queue, struct io_ops *ops)
 
 struct io_ops *io_queue_recv(struct io_queue *queue)
 {
-	if (!queue) {
-		perror("io_queue_recv: io_queue is NULL");
-		return NULL;
-	}
+  assert(queue != NULL);
 
 	struct io_queue_node *node = queue->front;
 

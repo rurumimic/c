@@ -3,6 +3,7 @@
 #include "../scheduler/io_selector.h"
 #include "async_reader.h"
 
+#include <assert.h>
 #include <error.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -14,10 +15,7 @@
 
 struct async_reader *async_reader_init(struct io_selector *selector, int cfd)
 {
-	if (!selector) {
-		perror("async_reader_init: selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	struct async_reader *r =
 		(struct async_reader *)malloc(sizeof(struct async_reader));
@@ -46,10 +44,7 @@ struct async_reader *async_reader_init(struct io_selector *selector, int cfd)
 
 void async_reader_free(struct async_reader *reader)
 {
-	if (!reader) {
-		perror("async_reader_free: async_reader is NULL");
-		return;
-	}
+  assert(reader != NULL);
 
 	// move cfd to io_selector
 	io_selector_unregister(reader->selector, reader->cfd);
@@ -58,10 +53,7 @@ void async_reader_free(struct async_reader *reader)
 
 struct future *async_reader_readline(struct async_reader *reader)
 {
-	if (!reader) {
-		perror("async_reader_readline: reader is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(reader != NULL);
 
 	return readline_init(reader->selector, reader->cfd);
 }

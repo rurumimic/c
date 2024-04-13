@@ -6,6 +6,7 @@
 #include "accept.h"
 
 #include <arpa/inet.h>
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -19,10 +20,7 @@
 
 struct future *accept_init(struct io_selector *selector, int sfd)
 {
-	if (!selector) {
-		perror("accept_init: selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -53,10 +51,7 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 
 void accept_free(struct future *future)
 {
-	if (!future) {
-		perror("accept_free: future is NULL");
-		return;
-	}
+  assert(future != NULL);
 
 	struct accept_data *data = (struct accept_data *)future->data;
 
@@ -71,10 +66,7 @@ void accept_free(struct future *future)
 
 struct poll accept_poll(struct future *future, struct context context)
 {
-	if (!future) {
-		perror("accept_poll: future is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(future != NULL);
 
 	struct accept_data *data = (struct accept_data *)future->data;
 	if (!data) {

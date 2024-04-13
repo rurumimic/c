@@ -4,6 +4,7 @@
 #include "task.h"
 #include "wakers.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -50,10 +51,8 @@ struct io_selector *io_selector_init(size_t epoll_size)
 
 void io_selector_free(struct io_selector *selector)
 {
-	if (!selector) {
-		perror("io_selector_free: io_selector is NULL");
-		return;
-	}
+
+  assert(selector != NULL);
 
 	close(selector->epfd);
 	close(selector->event);
@@ -64,10 +63,7 @@ void io_selector_free(struct io_selector *selector)
 
 pthread_t io_selector_spawn(struct io_selector *selector)
 {
-	if (!selector) {
-		perror("io_selector_spawn: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	pthread_t tid;
 
@@ -83,15 +79,8 @@ pthread_t io_selector_spawn(struct io_selector *selector)
 void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 			   struct waker waker, struct wakers *wakers)
 {
-	if (!selector) {
-		perror("io_selector_add_event: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	if (!wakers) {
-		perror("io_selector_add_event: wakers is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
+  assert(wakers != NULL);
 
 	struct epoll_event ev;
 
@@ -138,15 +127,8 @@ void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 void io_selector_remove_event(struct io_selector *selector, int fd,
 			      struct wakers *wakers)
 {
-	if (!selector) {
-		perror("io_selector_remove_event: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
-
-	if (!wakers) {
-		perror("io_selector_remove_event: wakers is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
+  assert(wakers != NULL);
 
 	struct epoll_event ev;
 
@@ -170,10 +152,7 @@ void io_selector_remove_event(struct io_selector *selector, int fd,
 
 void *io_selector_select(void *arg)
 {
-	if (!arg) {
-		perror("io_selector_select: arg is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(arg != NULL);
 
 	struct io_selector *selector = (struct io_selector *)arg;
 
@@ -267,10 +246,7 @@ void *io_selector_select(void *arg)
 void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 			  struct waker waker)
 {
-	if (!selector) {
-		perror("io_selector_register: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	pthread_mutex_lock(&selector->queue_mutex);
 
@@ -294,10 +270,7 @@ void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 
 void io_selector_unregister(struct io_selector *selector, int fd)
 {
-	if (!selector) {
-		perror("io_selector_unregister: io_selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	pthread_mutex_lock(&selector->queue_mutex);
 

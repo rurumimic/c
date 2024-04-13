@@ -5,6 +5,7 @@
 #include "async_reader.h"
 
 #include <arpa/inet.h>
+#include <assert.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -16,10 +17,7 @@
 struct async_listener *async_listener_init(int port,
 					   struct io_selector *selector)
 {
-	if (!selector) {
-		perror("async_listener_init: selector is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(selector != NULL);
 
 	struct async_listener *listener =
 		(struct async_listener *)malloc(sizeof(struct async_listener));
@@ -73,10 +71,7 @@ struct async_listener *async_listener_init(int port,
 
 void async_listener_free(struct async_listener *listener)
 {
-	if (!listener) {
-		perror("async_listener_free: listener is NULL");
-		return;
-	}
+  assert(listener != NULL);
 
 	// move sfd to io_selector
 	io_selector_unregister(listener->selector, listener->sfd);
@@ -85,10 +80,7 @@ void async_listener_free(struct async_listener *listener)
 
 struct future *async_listener_accept(struct async_listener *listener)
 {
-	if (!listener) {
-		perror("async_listener_accept: listener is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(listener != NULL);
 
 	return accept_init(listener->selector, listener->sfd);
 }

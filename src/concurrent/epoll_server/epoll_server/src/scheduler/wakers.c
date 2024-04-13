@@ -1,6 +1,7 @@
 #include "wakers.h"
 #include "task.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -41,10 +42,7 @@ struct wakers *wakers_init(size_t capacity)
 
 void wakers_free(struct wakers *wakers)
 {
-	if (!wakers) {
-		perror("wakers_free: wakers is NULL");
-		return;
-	}
+  assert(wakers != NULL);
 
 	for (size_t i = 0; i < wakers->capacity; i++) {
 		if (wakers->nodes[i].state == WAKERS_NODE_USED) {
@@ -68,10 +66,7 @@ int wakers_hash_function(int key, size_t capacity)
 
 int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 {
-	if (!wakers) {
-		perror("wakers_insert: wakers is NULL");
-		return -1;
-	}
+  assert(wakers != NULL);
 
 	if (wakers->length == wakers->capacity) {
 		perror("wakers_insert: wakers is full");
@@ -115,10 +110,7 @@ int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 
 struct wakers_node *wakers_find(struct wakers *wakers, int key)
 {
-	if (!wakers) {
-		perror("wakers_find: wakers is NULL");
-		return NULL;
-	}
+  assert(wakers != NULL);
 
 	int index = wakers_hash_function(key, wakers->capacity);
 
@@ -151,10 +143,7 @@ struct waker wakers_remove(struct wakers *w, int key)
 {
 	struct waker empty_waker = { .ptr = NULL, .wake = NULL, .free = NULL };
 
-	if (!w) {
-		perror("wakers_remove: wakers is NULL");
-		return empty_waker;
-	}
+  assert(w != NULL);
 
 	struct wakers_node *node = wakers_find(w, key);
 	if (!node) {

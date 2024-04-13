@@ -3,21 +3,15 @@
 #include "channel.h"
 #include "task.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
 struct task *task_init(struct future *future, struct channel *channel)
 {
-	if (!future) {
-		perror("task_init: future is NULL");
-		return NULL;
-	}
-
-	if (!channel) {
-		perror("task_init: channel is NULL");
-		return NULL;
-	}
+	assert(future != NULL);
+	assert(channel != NULL);
 
 	struct task *task = (struct task *)malloc(sizeof(struct task));
 
@@ -35,10 +29,7 @@ struct task *task_init(struct future *future, struct channel *channel)
 
 void task_free(void *ptr)
 {
-	if (!ptr) {
-		perror("task_free: pointer is NULL");
-		return;
-	}
+	assert(ptr != NULL);
 
 	struct task *task = (struct task *)ptr;
 
@@ -54,10 +45,7 @@ void task_free(void *ptr)
 
 void task_wake(void *ptr)
 {
-	if (!ptr) {
-		perror("task_wake: ptr is NULL");
-		return;
-	}
+  assert(ptr != NULL);
 
 	struct task *task = (struct task *)ptr;
 

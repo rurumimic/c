@@ -4,16 +4,14 @@
 #include "echo.h"
 #include "readline.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 struct future *echo_init(struct async_reader *reader)
 {
-	if (!reader) {
-		perror("echo_init: reader is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(reader != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -37,10 +35,7 @@ struct future *echo_init(struct async_reader *reader)
 
 void echo_free(struct future *future)
 {
-	if (!future) {
-		perror("echo_free: future is NULL");
-		return;
-	}
+  assert(future != NULL);
 
 	struct echo_data *data = (struct echo_data *)future->data;
 	if (data) {
@@ -55,10 +50,7 @@ void echo_free(struct future *future)
 
 struct poll echo_poll(struct future *future, struct context context)
 {
-	if (!future) {
-		perror("echo_poll: future is NULL");
-		exit(EXIT_FAILURE);
-	}
+  assert(future != NULL);
 
 	struct echo_data *echo = (struct echo_data *)future->data;
 	if (!echo) {
