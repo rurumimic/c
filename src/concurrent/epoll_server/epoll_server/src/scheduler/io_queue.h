@@ -1,6 +1,7 @@
 #ifndef _IO_QUEUE_H
 #define _IO_QUEUE_H
 
+#include <pthread.h>
 #include <stddef.h>
 #include "../future.h"
 
@@ -26,6 +27,7 @@ struct io_queue {
 	size_t length;
 	struct io_queue_node *front;
 	struct io_queue_node *rear;
+	pthread_mutex_t mutex;
 };
 
 struct io_queue *io_queue_init(void);

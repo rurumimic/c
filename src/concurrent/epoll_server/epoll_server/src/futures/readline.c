@@ -17,7 +17,7 @@
 
 struct future *readline_init(struct io_selector *selector, int cfd)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -30,6 +30,7 @@ struct future *readline_init(struct io_selector *selector, int cfd)
 		(struct readline_data *)malloc(sizeof(struct readline_data));
 
 	if (!data) {
+		free(future);
 		perror("readline: malloc failed to allocate readline_data");
 		exit(EXIT_FAILURE);
 	}
@@ -47,7 +48,7 @@ struct future *readline_init(struct io_selector *selector, int cfd)
 
 void readline_free(struct future *future)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct readline_data *data = (struct readline_data *)future->data;
 
@@ -62,7 +63,7 @@ void readline_free(struct future *future)
 
 struct poll readline_poll(struct future *future, struct context context)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct readline_data *data = (struct readline_data *)future->data;
 	if (!data) {
@@ -81,7 +82,8 @@ struct poll readline_poll(struct future *future, struct context context)
 
 	if (n < 0) {
 		if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
-			io_selector_register(selector, EPOLLIN, cfd, context.waker);
+			io_selector_register(selector, EPOLLIN, cfd,
+					     context.waker);
 			return (struct poll){ .state = POLL_PENDING,
 					      .output = NULL,
 					      .free = NULL };

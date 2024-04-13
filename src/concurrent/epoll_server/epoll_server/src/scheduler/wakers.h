@@ -21,6 +21,7 @@ struct wakers {
 	struct wakers_node *nodes;
 	size_t length;
 	size_t capacity;
+	pthread_mutex_t mutex;
 };
 
 struct wakers *wakers_init(size_t capacity);

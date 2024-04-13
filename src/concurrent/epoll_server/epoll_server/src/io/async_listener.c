@@ -17,7 +17,7 @@
 struct async_listener *async_listener_init(int port,
 					   struct io_selector *selector)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	struct async_listener *listener =
 		(struct async_listener *)malloc(sizeof(struct async_listener));
@@ -28,27 +28,32 @@ struct async_listener *async_listener_init(int port,
 
 	int sfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sfd < 0) {
+		free(listener);
 		perror("async_listener_init: socket failed to create");
 		exit(EXIT_FAILURE);
 	}
 
 	int opt = 1;
 	if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+		shutdown(sfd, SHUT_RDWR);
+		close(sfd);
+		free(listener);
 		perror("async_listener_init: setsockopt failed to set options");
-		exit(EXIT_FAILURE);
-	}
-
-	if (sfd < 0) {
-		perror("async_listener_init: socket failed to set options");
 		exit(EXIT_FAILURE);
 	}
 
 	int flags = fcntl(sfd, F_GETFL, 0);
 	if (flags < 0) {
+		shutdown(sfd, SHUT_RDWR);
+		close(sfd);
+		free(listener);
 		perror("async_listener_init: fcntl failed to get flags");
 		exit(EXIT_FAILURE);
 	}
 	if (fcntl(sfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+		shutdown(sfd, SHUT_RDWR);
+		close(sfd);
+		free(listener);
 		perror("async_listener_init: fcntl failed to set flags");
 		exit(EXIT_FAILURE);
 	}
@@ -59,6 +64,9 @@ struct async_listener *async_listener_init(int port,
 	address.sin_port = htons(port);
 
 	if (bind(sfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+		shutdown(sfd, SHUT_RDWR);
+		close(sfd);
+		free(listener);
 		perror("async_listener_init: bind failed");
 		exit(EXIT_FAILURE);
 	}
@@ -71,7 +79,7 @@ struct async_listener *async_listener_init(int port,
 
 void async_listener_free(struct async_listener *listener)
 {
-  assert(listener != NULL);
+	assert(listener != NULL);
 
 	// move sfd to io_selector
 	io_selector_unregister(listener->selector, listener->sfd);
@@ -80,7 +88,7 @@ void async_listener_free(struct async_listener *listener)
 
 struct future *async_listener_accept(struct async_listener *listener)
 {
-  assert(listener != NULL);
+	assert(listener != NULL);
 
 	return accept_init(listener->selector, listener->sfd);
 }

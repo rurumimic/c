@@ -20,7 +20,7 @@
 
 struct future *accept_init(struct io_selector *selector, int sfd)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -33,6 +33,7 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 		(struct accept_data *)malloc(sizeof(struct accept_data));
 
 	if (!data) {
+		free(future);
 		perror("accpet_init: malloc failed to allocate accept_data");
 		exit(EXIT_FAILURE);
 	}
@@ -51,7 +52,7 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 
 void accept_free(struct future *future)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct accept_data *data = (struct accept_data *)future->data;
 
@@ -66,7 +67,7 @@ void accept_free(struct future *future)
 
 struct poll accept_poll(struct future *future, struct context context)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct accept_data *data = (struct accept_data *)future->data;
 	if (!data) {
@@ -85,7 +86,8 @@ struct poll accept_poll(struct future *future, struct context context)
 			 (socklen_t *)&client_addr_size);
 	if (cfd < 0) {
 		if (errno == EWOULDBLOCK) {
-			io_selector_register(selector, EPOLLIN, sfd, context.waker);
+			io_selector_register(selector, EPOLLIN, sfd,
+					     context.waker);
 			return (struct poll){ .state = POLL_PENDING,
 					      .output = NULL,
 					      .free = NULL };

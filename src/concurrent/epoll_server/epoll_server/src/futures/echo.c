@@ -11,7 +11,7 @@
 
 struct future *echo_init(struct async_reader *reader)
 {
-  assert(reader != NULL);
+	assert(reader != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -22,6 +22,12 @@ struct future *echo_init(struct async_reader *reader)
 
 	struct echo_data *data =
 		(struct echo_data *)malloc(sizeof(struct echo_data));
+
+	if (!data) {
+		free(future);
+		perror("echo_init: malloc failed to allocate echo_data");
+		exit(EXIT_FAILURE);
+	}
 
 	data->state = ECHO_READING;
 	data->reader = reader;
@@ -35,7 +41,7 @@ struct future *echo_init(struct async_reader *reader)
 
 void echo_free(struct future *future)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct echo_data *data = (struct echo_data *)future->data;
 	if (data) {
@@ -50,7 +56,7 @@ void echo_free(struct future *future)
 
 struct poll echo_poll(struct future *future, struct context context)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct echo_data *echo = (struct echo_data *)future->data;
 	if (!echo) {
@@ -83,7 +89,7 @@ struct poll echo_poll(struct future *future, struct context context)
 				break;
 			}
 
-      echo->state = ECHO_WRITING;
+			echo->state = ECHO_WRITING;
 
 			write(cfd, result->lines, result->len);
 			fsync(cfd);
@@ -91,13 +97,13 @@ struct poll echo_poll(struct future *future, struct context context)
 			printf("Echo (%d): %s", cfd, result->lines);
 			readline->free(readline);
 
-      echo->state = ECHO_READING;
+			echo->state = ECHO_READING;
 		}
 	}
 
 	printf("Close (%d)\n", cfd);
 
-  echo->state = ECHO_FINISHED;
+	echo->state = ECHO_FINISHED;
 	return (struct poll){ .state = POLL_READY,
 			      .output = NULL,
 			      .free = NULL };

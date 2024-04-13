@@ -28,6 +28,7 @@ struct io_selector *io_selector_init(size_t epoll_size)
 	selector->epfd = epoll_create(epoll_size);
 
 	if (selector->epfd == -1) {
+		free(selector);
 		perror("io_selector_init: epoll_create failed to create epoll instance");
 		exit(EXIT_FAILURE);
 	}
@@ -35,6 +36,8 @@ struct io_selector *io_selector_init(size_t epoll_size)
 	int event = eventfd(0, 0);
 
 	if (event == -1) {
+		close(selector->epfd);
+		free(selector);
 		perror("io_selector_init: eventfd failed to create eventfd instance");
 		exit(EXIT_FAILURE);
 	}
@@ -42,9 +45,6 @@ struct io_selector *io_selector_init(size_t epoll_size)
 	selector->event = event;
 	selector->wakers = wakers_init(epoll_size);
 	selector->queue = io_queue_init();
-
-	pthread_mutex_init(&selector->wakers_mutex, NULL);
-	pthread_mutex_init(&selector->queue_mutex, NULL);
 
 	return selector;
 }
@@ -190,6 +190,8 @@ void *io_selector_select(void *arg)
 			if (errno == EINTR) {
 				continue;
 			}
+
+			free(events);
 			perror("io_selector_select: epoll_wait failed to wait for events");
 			exit(EXIT_FAILURE);
 		}
@@ -197,7 +199,6 @@ void *io_selector_select(void *arg)
 		uint64_t val;
 		ssize_t ret;
 
-		pthread_mutex_lock(&selector->wakers_mutex);
 		for (int i = 0; i < n; i++) {
 			if (events[i].data.fd == selector->event) {
 				errno = 0;
@@ -207,12 +208,12 @@ void *io_selector_select(void *arg)
 					    errno == EAGAIN || errno == EINTR) {
 						continue;
 					} else {
+						free(events);
 						perror("io_selector_select: read failed to read eventfd");
 						exit(EXIT_FAILURE);
 					}
 				}
 
-				pthread_mutex_lock(&selector->queue_mutex);
 				while (!io_queue_is_empty(selector->queue)) {
 					struct io_ops *ops =
 						io_queue_recv(selector->queue);
@@ -229,18 +230,15 @@ void *io_selector_select(void *arg)
 					}
 					free(ops);
 				}
-				pthread_mutex_unlock(&selector->queue_mutex);
 			} else {
 				struct waker waker = wakers_remove(
 					selector->wakers, events[i].data.fd);
 				task_wake(waker.ptr);
 			}
 		}
-		pthread_mutex_unlock(&selector->wakers_mutex);
 	}
 
 	free(events);
-
 	return NULL;
 }
 
@@ -248,8 +246,6 @@ void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 			  struct waker waker)
 {
 	assert(selector != NULL);
-
-	pthread_mutex_lock(&selector->queue_mutex);
 
 	struct io_ops *ops = (struct io_ops *)malloc(sizeof(struct io_ops));
 	if (!ops) {
@@ -263,17 +259,12 @@ void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 	ops->waker = waker;
 
 	io_queue_send(selector->queue, ops);
-
 	eventfd_write(selector->event, 1);
-
-	pthread_mutex_unlock(&selector->queue_mutex);
 }
 
 void io_selector_unregister(struct io_selector *selector, int fd)
 {
 	assert(selector != NULL);
-
-	pthread_mutex_lock(&selector->queue_mutex);
 
 	struct io_ops *ops = (struct io_ops *)malloc(sizeof(struct io_ops));
 	if (!ops) {
@@ -287,8 +278,5 @@ void io_selector_unregister(struct io_selector *selector, int fd)
 	ops->waker = (struct waker){ .ptr = NULL, .wake = NULL, .free = NULL };
 
 	io_queue_send(selector->queue, ops);
-
 	eventfd_write(selector->event, 1);
-
-	pthread_mutex_unlock(&selector->queue_mutex);
 }

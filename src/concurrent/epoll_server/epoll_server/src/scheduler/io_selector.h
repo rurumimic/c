@@ -15,9 +15,6 @@ struct io_selector {
 
 	struct wakers *wakers;
 	struct io_queue *queue;
-
-	pthread_mutex_t wakers_mutex;
-	pthread_mutex_t queue_mutex;
 };
 
 struct io_selector *io_selector_init(size_t epoll_size);

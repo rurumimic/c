@@ -19,8 +19,8 @@
 struct future *server_init(int port, struct io_selector *selector,
 			   struct spawner *spawner)
 {
-  assert(selector != NULL);
-  assert(spawner != NULL);
+	assert(selector != NULL);
+	assert(spawner != NULL);
 
 	struct future *future = (struct future *)malloc(sizeof(struct future));
 
@@ -33,6 +33,7 @@ struct future *server_init(int port, struct io_selector *selector,
 		(struct server_data *)malloc(sizeof(struct server_data));
 
 	if (!data) {
+		free(future);
 		perror("server_init: malloc failed to allocate data");
 		exit(EXIT_FAILURE);
 	}
@@ -40,6 +41,8 @@ struct future *server_init(int port, struct io_selector *selector,
 	struct async_listener *listener = async_listener_init(port, selector);
 
 	if (listen(listener->sfd, REQUEST_SIZE) < 0) {
+		free(data);
+		free(future);
 		perror("server: listen failed");
 		exit(EXIT_FAILURE);
 	}
@@ -58,7 +61,7 @@ struct future *server_init(int port, struct io_selector *selector,
 
 void server_free(struct future *future)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct server_data *data = (struct server_data *)future->data;
 	if (data) {
@@ -73,7 +76,7 @@ void server_free(struct future *future)
 
 struct poll server_poll(struct future *future, struct context context)
 {
-  assert(future != NULL);
+	assert(future != NULL);
 
 	struct server_data *server = (struct server_data *)future->data;
 	struct io_selector *selector = server->selector;
@@ -90,7 +93,7 @@ struct poll server_poll(struct future *future, struct context context)
 						      .free = NULL };
 			}
 
-      server->state = SERVER_ACCEPTED;
+			server->state = SERVER_ACCEPTED;
 
 			struct accept_data *result =
 				(struct accept_data *)poll.output;
@@ -103,11 +106,11 @@ struct poll server_poll(struct future *future, struct context context)
 			spawner_spawn(spawner, echo_init(async_reader_init(
 						       selector, cfd)));
 
-      server->state = SERVER_LISTENING;
+			server->state = SERVER_LISTENING;
 		}
 	}
-  
-  server->state = SERVER_FINISHED;
+
+	server->state = SERVER_FINISHED;
 	return (struct poll){ .state = POLL_READY,
 			      .output = NULL,
 			      .free = NULL };

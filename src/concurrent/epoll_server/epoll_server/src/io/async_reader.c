@@ -15,36 +15,42 @@
 
 struct async_reader *async_reader_init(struct io_selector *selector, int cfd)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
-	struct async_reader *r =
+	struct async_reader *reader =
 		(struct async_reader *)malloc(sizeof(struct async_reader));
 
-	if (!r) {
+	if (!reader) {
 		perror("async_reader_init: malloc failed to allocate async_reader");
 		exit(EXIT_FAILURE);
 	}
 
 	int flags = fcntl(cfd, F_GETFL, 0);
 	if (flags < 0) {
+		shutdown(cfd, SHUT_RDWR);
+		close(cfd);
+		free(reader);
 		perror("async_reader_init: fcntl failed to get flags");
 		exit(EXIT_FAILURE);
 	}
 
 	if (fcntl(cfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+		shutdown(cfd, SHUT_RDWR);
+		close(cfd);
+		free(reader);
 		perror("async_reader_init: fcntl failed to set flags");
 		exit(EXIT_FAILURE);
 	}
 
-	r->cfd = cfd;
-	r->selector = selector;
+	reader->cfd = cfd;
+	reader->selector = selector;
 
-	return r;
+	return reader;
 }
 
 void async_reader_free(struct async_reader *reader)
 {
-  assert(reader != NULL);
+	assert(reader != NULL);
 
 	// move cfd to io_selector
 	io_selector_unregister(reader->selector, reader->cfd);
@@ -53,7 +59,7 @@ void async_reader_free(struct async_reader *reader)
 
 struct future *async_reader_readline(struct async_reader *reader)
 {
-  assert(reader != NULL);
+	assert(reader != NULL);
 
 	return readline_init(reader->selector, reader->cfd);
 }

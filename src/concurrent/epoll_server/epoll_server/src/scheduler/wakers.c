@@ -2,6 +2,7 @@
 #include "task.h"
 
 #include <assert.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,8 +24,10 @@ struct wakers *wakers_init(size_t capacity)
 	wakers->length = 0;
 	wakers->nodes = (struct wakers_node *)malloc(
 		capacity * sizeof(struct wakers_node));
+	wakers->mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
 
 	if (!wakers->nodes) {
+		free(wakers);
 		perror("wakers_init: malloc failed to allocate wakers->nodes");
 		exit(EXIT_FAILURE);
 	}
@@ -42,7 +45,7 @@ struct wakers *wakers_init(size_t capacity)
 
 void wakers_free(struct wakers *wakers)
 {
-  assert(wakers != NULL);
+	assert(wakers != NULL);
 
 	for (size_t i = 0; i < wakers->capacity; i++) {
 		if (wakers->nodes[i].state == WAKERS_NODE_USED) {
@@ -50,6 +53,7 @@ void wakers_free(struct wakers *wakers)
 		}
 	}
 
+	pthread_mutex_destroy(&wakers->mutex);
 	free(wakers->nodes);
 	free(wakers);
 }
@@ -66,7 +70,7 @@ int wakers_hash_function(int key, size_t capacity)
 
 int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 {
-  assert(wakers != NULL);
+	assert(wakers != NULL);
 
 	if (wakers->length == wakers->capacity) {
 		perror("wakers_insert: wakers is full");
@@ -80,6 +84,8 @@ int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 		return -1;
 	}
 
+	pthread_mutex_lock(&wakers->mutex);
+
 	int i = index;
 
 	do {
@@ -92,10 +98,12 @@ int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 			node->waker = waker;
 
 			wakers->length++;
+			pthread_mutex_unlock(&wakers->mutex);
 			return 1;
 		}
 
 		if (node->key == key) {
+			pthread_mutex_unlock(&wakers->mutex);
 			perror("wakers_insert: key is already used");
 			return 0;
 		}
@@ -104,13 +112,14 @@ int wakers_insert(struct wakers *wakers, int key, struct waker waker)
 
 	} while (i != index);
 
+	pthread_mutex_unlock(&wakers->mutex);
 	perror("wakers_insert: wakers is full");
 	return 0;
 }
 
 struct wakers_node *wakers_find(struct wakers *wakers, int key)
 {
-  assert(wakers != NULL);
+	assert(wakers != NULL);
 
 	int index = wakers_hash_function(key, wakers->capacity);
 
@@ -119,16 +128,20 @@ struct wakers_node *wakers_find(struct wakers *wakers, int key)
 		return NULL;
 	}
 
+	pthread_mutex_lock(&wakers->mutex);
+
 	int i = index;
 
 	do {
 		struct wakers_node *node = &wakers->nodes[i];
 
 		if (node->state == WAKERS_NODE_EMPTY) {
+			pthread_mutex_unlock(&wakers->mutex);
 			return NULL;
 		}
 
 		if (node->state == WAKERS_NODE_USED && node->key == key) {
+			pthread_mutex_unlock(&wakers->mutex);
 			return node;
 		}
 
@@ -136,19 +149,23 @@ struct wakers_node *wakers_find(struct wakers *wakers, int key)
 
 	} while (i != index);
 
+	pthread_mutex_unlock(&wakers->mutex);
 	return NULL;
 }
 
-struct waker wakers_remove(struct wakers *w, int key)
+struct waker wakers_remove(struct wakers *wakers, int key)
 {
-  assert(w != NULL);
+	assert(wakers != NULL);
 
 	struct waker empty_waker = { .ptr = NULL, .wake = NULL, .free = NULL };
 
-	struct wakers_node *node = wakers_find(w, key);
+	struct wakers_node *node = wakers_find(wakers, key);
 	if (!node) {
+		pthread_mutex_unlock(&wakers->mutex);
 		return empty_waker;
 	}
+
+	pthread_mutex_lock(&wakers->mutex);
 
 	struct waker waker = node->waker;
 
@@ -156,7 +173,9 @@ struct waker wakers_remove(struct wakers *w, int key)
 	node->key = -1;
 	node->waker = empty_waker;
 
-	w->length--;
+	wakers->length--;
+
+	pthread_mutex_unlock(&wakers->mutex);
 
 	return waker;
 }
