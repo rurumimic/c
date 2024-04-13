@@ -17,9 +17,6 @@
 
 volatile sig_atomic_t running = 1;
 
-// pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
-// pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
 static void handler(int signum)
 {
 	printf("[SIG: %d]\n", signum);
@@ -39,19 +36,21 @@ int main(int argc, char *argv[])
 	struct spawner *spawner = executor_get_spawner(executor);
 
 	struct io_selector *selector = io_selector_init(SIZE);
-	pthread_t tid = io_selector_spawn(selector);
+	pthread_t selector_tid = io_selector_spawn(selector);
 
 	// Server
 	spawner_spawn(spawner, server_init(PORT, selector, spawner));
-	executor_run(executor);
+	pthread_t executor_tid = executor_spawn(executor);
 
 	// Clean Up
-	pthread_join(tid, NULL);
+	pthread_join(selector_tid, NULL);
+
+	pthread_cancel(executor_tid);
+	pthread_join(executor_tid, NULL);
+
 	io_selector_free(selector);
 	spawner_free(spawner);
 	executor_free(executor);
-	// pthread_mutex_destroy(&cond_mutex);
-	// pthread_cond_destroy(&cond);
 
 	printf("Goodbye.\n");
 

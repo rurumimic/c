@@ -51,8 +51,7 @@ struct io_selector *io_selector_init(size_t epoll_size)
 
 void io_selector_free(struct io_selector *selector)
 {
-
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	close(selector->epfd);
 	close(selector->event);
@@ -63,11 +62,12 @@ void io_selector_free(struct io_selector *selector)
 
 pthread_t io_selector_spawn(struct io_selector *selector)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	pthread_t tid;
 
-	if (pthread_create(&tid, NULL, io_selector_select, (void *)selector) != 0) {
+	if (pthread_create(&tid, NULL, io_selector_select, (void *)selector) !=
+	    0) {
 		perror("io_selector_run: pthread_create failed to create io_selector "
 		       "thread");
 		exit(EXIT_FAILURE);
@@ -79,8 +79,8 @@ pthread_t io_selector_spawn(struct io_selector *selector)
 void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 			   struct waker waker, struct wakers *wakers)
 {
-  assert(selector != NULL);
-  assert(wakers != NULL);
+	assert(selector != NULL);
+	assert(wakers != NULL);
 
 	struct epoll_event ev;
 
@@ -93,7 +93,8 @@ void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 		// perror("io_selector_add_event: epoll_ctl failed to add event to epoll instance");
 
 		if (errno == EEXIST) { // already exists
-			if (epoll_ctl(selector->epfd, EPOLL_CTL_MOD, fd, &ev) == -1) {
+			if (epoll_ctl(selector->epfd, EPOLL_CTL_MOD, fd, &ev) ==
+			    -1) {
 				perror("io_selector_add_event: epoll_ctl failed to modify "
 				       "event in epoll instance");
 				exit(EXIT_FAILURE);
@@ -112,7 +113,8 @@ void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 			ev.events = 0;
 			ev.data.fd = fd;
 
-			if (epoll_ctl(selector->epfd, EPOLL_CTL_DEL, fd, &ev) == -1) {
+			if (epoll_ctl(selector->epfd, EPOLL_CTL_DEL, fd, &ev) ==
+			    -1) {
 				perror("io_selector_remove_event: epoll_ctl failed to remove event "
 				       "from epoll instance");
 				exit(EXIT_FAILURE);
@@ -127,8 +129,8 @@ void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 void io_selector_remove_event(struct io_selector *selector, int fd,
 			      struct wakers *wakers)
 {
-  assert(selector != NULL);
-  assert(wakers != NULL);
+	assert(selector != NULL);
+	assert(wakers != NULL);
 
 	struct epoll_event ev;
 
@@ -152,7 +154,7 @@ void io_selector_remove_event(struct io_selector *selector, int fd,
 
 void *io_selector_select(void *arg)
 {
-  assert(arg != NULL);
+	assert(arg != NULL);
 
 	struct io_selector *selector = (struct io_selector *)arg;
 
@@ -162,7 +164,8 @@ void *io_selector_select(void *arg)
 	ev.events = EPOLLIN;
 	ev.data.fd = selector->event;
 
-	if (epoll_ctl(selector->epfd, EPOLL_CTL_ADD, selector->event, &ev) == -1) {
+	if (epoll_ctl(selector->epfd, EPOLL_CTL_ADD, selector->event, &ev) ==
+	    -1) {
 		perror("io_selector_select: epoll_ctl failed to add event to epoll "
 		       "instance!");
 		exit(EXIT_FAILURE);
@@ -176,7 +179,8 @@ void *io_selector_select(void *arg)
 	}
 
 	while (running) {
-		int n = epoll_wait(selector->epfd, events, selector->wakers->capacity, 10);
+		int n = epoll_wait(selector->epfd, events,
+				   selector->wakers->capacity, 10);
 
 		if (n == 0) {
 			continue;
@@ -215,11 +219,13 @@ void *io_selector_select(void *arg)
 
 					if (ops->type == IO_OPS_ADD) {
 						io_selector_add_event(
-							selector, ops->flags, ops->fd,
-							ops->waker, selector->wakers);
+							selector, ops->flags,
+							ops->fd, ops->waker,
+							selector->wakers);
 					} else if (ops->type == IO_OPS_REMOVE) {
 						io_selector_remove_event(
-							selector, ops->fd, selector->wakers);
+							selector, ops->fd,
+							selector->wakers);
 					}
 					free(ops);
 				}
@@ -235,18 +241,13 @@ void *io_selector_select(void *arg)
 
 	free(events);
 
-	pthread_mutex_lock(&cond_mutex);
-	printf("Close: io_selector\n");
-	pthread_cond_broadcast(&cond);
-	pthread_mutex_unlock(&cond_mutex);
-
 	return NULL;
 }
 
 void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 			  struct waker waker)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	pthread_mutex_lock(&selector->queue_mutex);
 
@@ -270,7 +271,7 @@ void io_selector_register(struct io_selector *selector, uint32_t flags, int fd,
 
 void io_selector_unregister(struct io_selector *selector, int fd)
 {
-  assert(selector != NULL);
+	assert(selector != NULL);
 
 	pthread_mutex_lock(&selector->queue_mutex);
 

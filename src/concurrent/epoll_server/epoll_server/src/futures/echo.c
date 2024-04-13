@@ -97,6 +97,7 @@ struct poll echo_poll(struct future *future, struct context context)
 
 	printf("Close (%d)\n", cfd);
 
+  echo->state = ECHO_FINISHED;
 	return (struct poll){ .state = POLL_READY,
 			      .output = NULL,
 			      .free = NULL };

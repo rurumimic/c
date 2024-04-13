@@ -6,6 +6,7 @@
 enum async_echo_state {
 	ECHO_READING,
   ECHO_WRITING,
+  ECHO_FINISHED,
 };
 
 struct echo_data {

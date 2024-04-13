@@ -106,7 +106,8 @@ struct poll server_poll(struct future *future, struct context context)
       server->state = SERVER_LISTENING;
 		}
 	}
-
+  
+  server->state = SERVER_FINISHED;
 	return (struct poll){ .state = POLL_READY,
 			      .output = NULL,
 			      .free = NULL };

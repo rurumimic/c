@@ -49,8 +49,8 @@ void task_wake(void *ptr)
 
 	struct task *task = (struct task *)ptr;
 
-	pthread_mutex_lock(&cond_mutex);
+	pthread_mutex_lock(&task->channel->cond_mutex);
 	channel_send(task->channel, task);
-	pthread_cond_broadcast(&cond);
-	pthread_mutex_unlock(&cond_mutex);
+	pthread_cond_broadcast(&task->channel->cond);
+	pthread_mutex_unlock(&task->channel->cond_mutex);
 }
