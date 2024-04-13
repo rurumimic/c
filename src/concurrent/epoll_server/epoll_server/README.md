@@ -88,3 +88,7 @@ Connection closed.
 
 - torvalds/linux: [.clang-format](https://github.com/torvalds/linux/blob/master/.clang-format)
 
+```bash
+find . -iname '*.h' -o -iname '*.c' | xargs clang-format -i
+```
+
