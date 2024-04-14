@@ -17,28 +17,37 @@ struct wakers *wakers_init(size_t capacity)
 
 	if (!wakers) {
 		perror("wakers_init: malloc failed to allocate wakers");
-		exit(EXIT_FAILURE);
+		return NULL;
+	}
+
+	struct wakers_node *nodes = (struct wakers_node *)malloc(
+		capacity * sizeof(struct wakers_node));
+	if (!nodes) {
+		perror("wakers_init: malloc failed to allocate nodes");
+		free(wakers);
+		return NULL;
+	}
+
+	for (size_t i = 0; i < capacity; i++) {
+		nodes[i].state = WAKERS_NODE_EMPTY;
+		nodes[i].key = -1;
+		nodes[i].waker = (struct waker){ .ptr = NULL,
+						 .wake = NULL,
+						 .free = NULL };
+	}
+
+	pthread_mutex_t mutex;
+	if (pthread_mutex_init(&mutex, NULL) != 0) {
+		perror("wakers_init: pthread_mutex_init failed to initialize wakers mutex");
+		free(nodes);
+		free(wakers);
+		return NULL;
 	}
 
 	wakers->capacity = capacity;
 	wakers->length = 0;
-	wakers->nodes = (struct wakers_node *)malloc(
-		capacity * sizeof(struct wakers_node));
-	wakers->mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-
-	if (!wakers->nodes) {
-		free(wakers);
-		perror("wakers_init: malloc failed to allocate wakers->nodes");
-		exit(EXIT_FAILURE);
-	}
-
-	for (size_t i = 0; i < capacity; i++) {
-		wakers->nodes[i].state = WAKERS_NODE_EMPTY;
-		wakers->nodes[i].key = -1;
-		wakers->nodes[i].waker = (struct waker){ .ptr = NULL,
-							 .wake = NULL,
-							 .free = NULL };
-	}
+	wakers->nodes = nodes;
+	wakers->mutex = mutex;
 
 	return wakers;
 }

@@ -4,6 +4,7 @@
 #include "echo.h"
 #include "readline.h"
 
+#include "src/poll.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,16 +18,16 @@ struct future *echo_init(struct async_reader *reader)
 
 	if (!future) {
 		perror("echo_init: malloc failed to allocate echo");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	struct echo_data *data =
 		(struct echo_data *)malloc(sizeof(struct echo_data));
 
 	if (!data) {
-		free(future);
 		perror("echo_init: malloc failed to allocate echo_data");
-		exit(EXIT_FAILURE);
+		free(future);
+		return NULL;
 	}
 
 	data->state = ECHO_READING;
@@ -61,7 +62,10 @@ struct poll echo_poll(struct future *future, struct context context)
 	struct echo_data *echo = (struct echo_data *)future->data;
 	if (!echo) {
 		perror("echo_poll: data is NULL");
-		exit(EXIT_FAILURE);
+		echo->state = ECHO_FINISHED;
+		return (struct poll){ .state = POLL_READY,
+				      .output = NULL,
+				      .free = NULL };
 	}
 
 	struct async_reader *reader = echo->reader;
@@ -72,11 +76,21 @@ struct poll echo_poll(struct future *future, struct context context)
 	while (running) {
 		if (echo->state == ECHO_READING) {
 			struct future *readline = async_reader_readline(reader);
+			if (!readline) {
+				perror("echo_poll: async_reader_readline failed to read line");
+        break;
+			}
+
 			struct poll poll = readline->poll(readline, context);
 			if (poll.state == POLL_PENDING) {
 				return (struct poll){ .state = POLL_PENDING,
 						      .output = NULL,
 						      .free = NULL };
+			}
+
+			if (poll.output == NULL) {
+				readline->free(readline);
+				break;
 			}
 
 			struct readline_data *result =

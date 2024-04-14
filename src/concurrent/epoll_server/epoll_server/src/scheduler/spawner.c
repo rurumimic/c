@@ -18,11 +18,10 @@ struct spawner *spawner_init(struct channel *channel)
 
 	if (!spawner) {
 		perror("spawner_init: malloc failed to allocate spawner");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	spawner->channel = channel;
-
 	return spawner;
 }
 
@@ -33,12 +32,15 @@ void spawner_free(struct spawner *spawner)
 	free(spawner);
 }
 
-void spawner_spawn(struct spawner *spawner, struct future *future)
+int spawner_spawn(struct spawner *spawner, struct future *future)
 {
 	assert(spawner != NULL);
 	assert(future != NULL);
 
 	struct task *task = task_init(future, spawner->channel);
+	if (!task) {
+		return -1;
+	}
 
-	channel_send(spawner->channel, task);
+	return channel_send(spawner->channel, task);
 }

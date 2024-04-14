@@ -24,7 +24,7 @@ void channel_free(struct channel *channel);
 
 int channel_is_empty(struct channel *channel);
 struct task *channel_peek(struct channel *channel);
-void channel_send(struct channel *channel, struct task *task);
+int channel_send(struct channel *channel, struct task *task);
 struct task *channel_recv(struct channel *channel);
 
 #endif // _CHANNEL_H

@@ -20,7 +20,8 @@ struct io_selector {
 struct io_selector *io_selector_init(size_t epoll_size);
 void io_selector_free(struct io_selector *selector);
 
-pthread_t io_selector_spawn(struct io_selector *selector);
+int io_selector_spawn(struct io_selector *selector,
+		      pthread_t *__restrict __newthread);
 
 void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 			   struct waker waker, struct wakers *wakers);

@@ -13,14 +13,30 @@ struct channel *channel_init(void)
 
 	if (!channel) {
 		perror("channel_init: malloc failed to allocate channel");
-    return NULL;
+		return NULL;
+	}
+
+	pthread_mutex_t cond_mutex;
+	pthread_cond_t cond;
+
+	if (pthread_mutex_init(&cond_mutex, NULL) != 0) {
+		perror("channel_init: pthread_mutex_init failed to initialize channel mutex");
+		free(channel);
+		return NULL;
+	}
+
+	if (pthread_cond_init(&cond, NULL) != 0) {
+		perror("channel_init: pthread_cond_init failed to initialize channel condition variable");
+		pthread_mutex_destroy(&cond_mutex);
+		free(channel);
+		return NULL;
 	}
 
 	channel->front = NULL;
 	channel->rear = NULL;
 	channel->length = 0;
-	channel->cond_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-	channel->cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
+	channel->cond_mutex = cond_mutex;
+	channel->cond = cond;
 
 	return channel;
 }
@@ -67,7 +83,7 @@ struct task *channel_peek(struct channel *channel)
 	return channel->front->task;
 }
 
-void channel_send(struct channel *channel, struct task *task)
+int channel_send(struct channel *channel, struct task *task)
 {
 	assert(channel != NULL);
 	assert(task != NULL);
@@ -77,7 +93,7 @@ void channel_send(struct channel *channel, struct task *task)
 
 	if (!node) {
 		perror("malloc failed in channel_send");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
 	node->task = task;
@@ -97,6 +113,8 @@ void channel_send(struct channel *channel, struct task *task)
 
 	pthread_cond_broadcast(&channel->cond);
 	pthread_mutex_unlock(&channel->cond_mutex);
+
+	return 0;
 }
 
 struct task *channel_recv(struct channel *channel)

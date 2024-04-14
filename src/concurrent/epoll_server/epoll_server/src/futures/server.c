@@ -26,25 +26,31 @@ struct future *server_init(int port, struct io_selector *selector,
 
 	if (!future) {
 		perror("server_init: malloc failed to allocate server");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	struct server_data *data =
 		(struct server_data *)malloc(sizeof(struct server_data));
 
 	if (!data) {
-		free(future);
 		perror("server_init: malloc failed to allocate data");
-		exit(EXIT_FAILURE);
+		free(future);
+		return NULL;
 	}
 
 	struct async_listener *listener = async_listener_init(port, selector);
-
-	if (listen(listener->sfd, REQUEST_SIZE) < 0) {
+	if (!listener) {
+		perror("server_init: async_listener_init failed to initialize listener");
 		free(data);
 		free(future);
+		return NULL;
+	}
+
+	if (listen(listener->sfd, REQUEST_SIZE) < 0) {
 		perror("server: listen failed");
-		exit(EXIT_FAILURE);
+		free(data);
+		free(future);
+		return NULL;
 	}
 
 	data->state = SERVER_LISTENING;
@@ -64,6 +70,7 @@ void server_free(struct future *future)
 	assert(future != NULL);
 
 	struct server_data *data = (struct server_data *)future->data;
+
 	if (data) {
 		async_listener_free(data->listener);
 		free(data);
@@ -86,6 +93,13 @@ struct poll server_poll(struct future *future, struct context context)
 	while (running) {
 		if (server->state == SERVER_LISTENING) {
 			struct future *accept = async_listener_accept(listener);
+			if (!accept) {
+				perror("server_poll: async_listener_accept failed to accept connection");
+				return (struct poll){ .state = POLL_PENDING,
+						      .output = NULL,
+						      .free = NULL };
+			}
+
 			struct poll poll = accept->poll(accept, context);
 			if (poll.state == POLL_PENDING) {
 				return (struct poll){ .state = POLL_PENDING,

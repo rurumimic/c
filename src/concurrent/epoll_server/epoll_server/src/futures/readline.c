@@ -23,16 +23,16 @@ struct future *readline_init(struct io_selector *selector, int cfd)
 
 	if (!future) {
 		perror("readline: malloc failed to allocate future");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	struct readline_data *data =
 		(struct readline_data *)malloc(sizeof(struct readline_data));
 
 	if (!data) {
-		free(future);
 		perror("readline: malloc failed to allocate readline_data");
-		exit(EXIT_FAILURE);
+		free(future);
+		return NULL;
 	}
 
 	data->selector = selector;
@@ -68,7 +68,9 @@ struct poll readline_poll(struct future *future, struct context context)
 	struct readline_data *data = (struct readline_data *)future->data;
 	if (!data) {
 		perror("readline_poll: data is NULL");
-		exit(EXIT_FAILURE);
+		return (struct poll){ .state = POLL_READY,
+				      .output = NULL,
+				      .free = NULL };
 	}
 
 	struct io_selector *selector = data->selector;

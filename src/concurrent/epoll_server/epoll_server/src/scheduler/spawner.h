@@ -10,6 +10,6 @@ struct spawner {
 
 struct spawner *spawner_init(struct channel *channel);
 void spawner_free(struct spawner *spawner);
-void spawner_spawn(struct spawner *spawner, struct future *future);
+int spawner_spawn(struct spawner *spawner, struct future *future);
 
 #endif // _SPAWNER_H

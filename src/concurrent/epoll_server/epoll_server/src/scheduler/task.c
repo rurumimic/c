@@ -17,12 +17,16 @@ struct task *task_init(struct future *future, struct channel *channel)
 
 	if (!task) {
 		perror("task_init: malloc failed to allocate task");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	task->future = future;
 	task->channel = channel;
-	pthread_mutex_init(&task->mutex, NULL);
+	if (pthread_mutex_init(&task->mutex, NULL) != 0) {
+		perror("task_init: pthread_mutex_init failed to initialize task mutex");
+		free(task);
+		return NULL;
+	}
 
 	return task;
 }

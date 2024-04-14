@@ -22,29 +22,45 @@ struct io_selector *io_selector_init(size_t epoll_size)
 
 	if (!selector) {
 		perror("io_selector_init: malloc failed to allocate io_selector");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
-	selector->epfd = epoll_create(epoll_size);
-
-	if (selector->epfd == -1) {
-		free(selector);
+	int epfd = epoll_create(epoll_size);
+	if (epfd == -1) {
 		perror("io_selector_init: epoll_create failed to create epoll instance");
-		exit(EXIT_FAILURE);
+		free(selector);
+		return NULL;
 	}
 
 	int event = eventfd(0, 0);
-
 	if (event == -1) {
-		close(selector->epfd);
-		free(selector);
 		perror("io_selector_init: eventfd failed to create eventfd instance");
-		exit(EXIT_FAILURE);
+		close(epfd);
+		free(selector);
+		return NULL;
 	}
 
+	struct wakers *wakers = wakers_init(epoll_size);
+	if (!wakers) {
+		close(event);
+		close(epfd);
+		free(selector);
+		return NULL;
+	}
+
+	struct io_queue *queue = io_queue_init();
+	if (!queue) {
+		wakers_free(wakers);
+		close(event);
+		close(epfd);
+		free(selector);
+		return NULL;
+	}
+
+	selector->epfd = epfd;
 	selector->event = event;
-	selector->wakers = wakers_init(epoll_size);
-	selector->queue = io_queue_init();
+	selector->wakers = wakers;
+	selector->queue = queue;
 
 	return selector;
 }
@@ -53,27 +69,26 @@ void io_selector_free(struct io_selector *selector)
 {
 	assert(selector != NULL);
 
-	close(selector->epfd);
-	close(selector->event);
 	wakers_free(selector->wakers);
 	io_queue_free(selector->queue);
+	close(selector->event);
+	close(selector->epfd);
 	free(selector);
 }
 
-pthread_t io_selector_spawn(struct io_selector *selector)
+int io_selector_spawn(struct io_selector *selector,
+		      pthread_t *__restrict __newthread)
 {
 	assert(selector != NULL);
 
-	pthread_t tid;
-
-	if (pthread_create(&tid, NULL, io_selector_select, (void *)selector) !=
-	    0) {
+	if (pthread_create(__newthread, NULL, io_selector_select,
+			   (void *)selector) != 0) {
 		perror("io_selector_run: pthread_create failed to create io_selector "
 		       "thread");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
-	return tid;
+	return 0;
 }
 
 void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
@@ -269,7 +284,7 @@ void io_selector_unregister(struct io_selector *selector, int fd)
 	struct io_ops *ops = (struct io_ops *)malloc(sizeof(struct io_ops));
 	if (!ops) {
 		perror("io_selector_unregister: malloc failed to allocate io_ops");
-		exit(EXIT_FAILURE);
+    return;
 	}
 
 	ops->type = IO_OPS_REMOVE;

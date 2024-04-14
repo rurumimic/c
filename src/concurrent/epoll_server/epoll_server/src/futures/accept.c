@@ -26,16 +26,16 @@ struct future *accept_init(struct io_selector *selector, int sfd)
 
 	if (!future) {
 		perror("accept_init: malloc failed to allocate future");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	struct accept_data *data =
 		(struct accept_data *)malloc(sizeof(struct accept_data));
 
 	if (!data) {
-		free(future);
 		perror("accpet_init: malloc failed to allocate accept_data");
-		exit(EXIT_FAILURE);
+		free(future);
+		return NULL;
 	}
 
 	data->selector = selector;
@@ -72,7 +72,9 @@ struct poll accept_poll(struct future *future, struct context context)
 	struct accept_data *data = (struct accept_data *)future->data;
 	if (!data) {
 		perror("accept_poll: data is NULL");
-		exit(EXIT_FAILURE);
+    return (struct poll){ .state = POLL_READY,
+                          .output = NULL,
+                          .free = NULL };
 	}
 
 	struct io_selector *selector = data->selector;

@@ -26,6 +26,9 @@ static void handler(int signum)
 
 int main(int argc, char *argv[])
 {
+	pthread_t selector_tid;
+	pthread_t executor_tid;
+
 	signal(SIGINT, handler);
 
 	printf("Welcome to the Echo Server.\n");
@@ -34,18 +37,14 @@ int main(int argc, char *argv[])
 
 	// Setup
 	struct executor *executor = executor_init();
-  if (!executor) {
-    return EXIT_FAILURE;
-  }
-
 	struct spawner *spawner = executor_get_spawner(executor);
 
 	struct io_selector *selector = io_selector_init(SIZE);
-	pthread_t selector_tid = io_selector_spawn(selector);
+	io_selector_spawn(selector, &selector_tid);
 
 	// Server
 	spawner_spawn(spawner, server_init(PORT, selector, spawner));
-	pthread_t executor_tid = executor_spawn(executor);
+	executor_spawn(executor, &executor_tid);
 
 	// Clean Up
 	pthread_join(selector_tid, NULL);

@@ -22,24 +22,24 @@ struct async_reader *async_reader_init(struct io_selector *selector, int cfd)
 
 	if (!reader) {
 		perror("async_reader_init: malloc failed to allocate async_reader");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	int flags = fcntl(cfd, F_GETFL, 0);
 	if (flags < 0) {
+		perror("async_reader_init: fcntl failed to get flags");
 		shutdown(cfd, SHUT_RDWR);
 		close(cfd);
 		free(reader);
-		perror("async_reader_init: fcntl failed to get flags");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	if (fcntl(cfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+		perror("async_reader_init: fcntl failed to set flags");
 		shutdown(cfd, SHUT_RDWR);
 		close(cfd);
 		free(reader);
-		perror("async_reader_init: fcntl failed to set flags");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	reader->cfd = cfd;

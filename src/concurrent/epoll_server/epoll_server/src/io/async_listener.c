@@ -23,39 +23,39 @@ struct async_listener *async_listener_init(int port,
 		(struct async_listener *)malloc(sizeof(struct async_listener));
 	if (!listener) {
 		perror("async_listener_init: malloc failed to allocate async_listener");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	int sfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sfd < 0) {
-		free(listener);
 		perror("async_listener_init: socket failed to create");
-		exit(EXIT_FAILURE);
+		free(listener);
+		return NULL;
 	}
 
 	int opt = 1;
 	if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+		perror("async_listener_init: setsockopt failed to set options");
 		shutdown(sfd, SHUT_RDWR);
 		close(sfd);
 		free(listener);
-		perror("async_listener_init: setsockopt failed to set options");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	int flags = fcntl(sfd, F_GETFL, 0);
 	if (flags < 0) {
+		perror("async_listener_init: fcntl failed to get flags");
 		shutdown(sfd, SHUT_RDWR);
 		close(sfd);
 		free(listener);
-		perror("async_listener_init: fcntl failed to get flags");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 	if (fcntl(sfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+		perror("async_listener_init: fcntl failed to set flags");
 		shutdown(sfd, SHUT_RDWR);
 		close(sfd);
 		free(listener);
-		perror("async_listener_init: fcntl failed to set flags");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	struct sockaddr_in address;
@@ -64,11 +64,11 @@ struct async_listener *async_listener_init(int port,
 	address.sin_port = htons(port);
 
 	if (bind(sfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+		perror("async_listener_init: bind failed");
 		shutdown(sfd, SHUT_RDWR);
 		close(sfd);
 		free(listener);
-		perror("async_listener_init: bind failed");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	listener->sfd = sfd;

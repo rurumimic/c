@@ -13,13 +13,18 @@ struct io_queue *io_queue_init(void)
 
 	if (!queue) {
 		perror("io_queue_init: malloc failed to allocate io_queue");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	queue->front = NULL;
 	queue->rear = NULL;
 	queue->length = 0;
-	queue->mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+
+	if (pthread_mutex_init(&queue->mutex, NULL) != 0) {
+		perror("io_queue_init: pthread_mutex_init failed to initialize io_queue mutex");
+		free(queue);
+		return NULL;
+	}
 
 	return queue;
 }
@@ -65,7 +70,7 @@ void io_queue_send(struct io_queue *queue, struct io_ops *ops)
 
 	if (!node) {
 		perror("io_queue_send: malloc failed to allocate io_queue_node");
-		exit(EXIT_FAILURE);
+    return;
 	}
 
 	node->ops = ops;

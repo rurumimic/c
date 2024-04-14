@@ -48,23 +48,22 @@ struct spawner *executor_get_spawner(struct executor *executor)
 	return spawner_init(executor->channel);
 }
 
-pthread_t executor_spawn(struct executor *executor)
+int executor_spawn(struct executor *executor, pthread_t *__restrict __newthread)
 {
 	assert(executor != NULL);
 
-	pthread_t tid;
-
-	if (pthread_create(&tid, NULL, executor_run, (void *)executor) != 0) {
+	if (pthread_create(__newthread, NULL, executor_run, (void *)executor) !=
+	    0) {
 		perror("executor_spawn: pthread_create failed to create executor thread");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
-	return tid;
+	return 0;
 }
 
 void executor_cancel(void *arg)
 {
-	printf("Canceling executor\n");
+	printf("Executor Stop.\n");
 }
 
 void *executor_run(void *arg)
