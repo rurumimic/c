@@ -15,14 +15,18 @@ struct executor *executor_init(void)
 {
 	struct executor *executor =
 		(struct executor *)malloc(sizeof(struct executor));
-
 	if (!executor) {
 		perror("executor_init: malloc failed to allocate executor");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
-	executor->channel = channel_init();
+	struct channel *channel = channel_init();
+	if (!channel) {
+		free(executor);
+		return NULL;
+	}
 
+	executor->channel = channel;
 	return executor;
 }
 

@@ -34,6 +34,10 @@ int main(int argc, char *argv[])
 
 	// Setup
 	struct executor *executor = executor_init();
+  if (!executor) {
+    return EXIT_FAILURE;
+  }
+
 	struct spawner *spawner = executor_get_spawner(executor);
 
 	struct io_selector *selector = io_selector_init(SIZE);

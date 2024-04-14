@@ -13,7 +13,7 @@ struct channel *channel_init(void)
 
 	if (!channel) {
 		perror("channel_init: malloc failed to allocate channel");
-		exit(EXIT_FAILURE);
+    return NULL;
 	}
 
 	channel->front = NULL;
