@@ -69,6 +69,26 @@ void io_selector_free(struct io_selector *selector)
 {
 	assert(selector != NULL);
 
+	wakers_clean(selector->wakers);
+
+	while (!io_queue_is_empty(selector->queue)) {
+		struct io_ops *ops = io_queue_recv(selector->queue);
+
+		if (ops->type == IO_OPS_REMOVE) {
+			if (ops->fd != 0) {
+				printf("Clean (%d)\n", ops->fd);
+				shutdown(ops->fd, SHUT_RDWR);
+				close(ops->fd);
+			}
+		}
+
+		if (ops->waker.ptr) {
+			ops->waker.free(ops->waker.ptr);
+		}
+
+		free(ops);
+	}
+
 	wakers_free(selector->wakers);
 	io_queue_free(selector->queue);
 	close(selector->event);
@@ -123,20 +143,7 @@ void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 
 	if (!wakers_find(wakers, fd)) {
 		if (wakers_insert(wakers, fd, waker) < 1) {
-			struct epoll_event ev;
-
-			ev.events = 0;
-			ev.data.fd = fd;
-
-			if (epoll_ctl(selector->epfd, EPOLL_CTL_DEL, fd, &ev) ==
-			    -1) {
-				perror("io_selector_remove_event: epoll_ctl failed to remove event "
-				       "from epoll instance");
-				exit(EXIT_FAILURE);
-			}
-
-			shutdown(fd, SHUT_RDWR);
-			close(fd);
+			waker.free(waker.ptr);
 		}
 	}
 }
@@ -162,6 +169,8 @@ void io_selector_remove_event(struct io_selector *selector, int fd,
 	if (waker.ptr) {
 		waker.free(waker.ptr);
 	}
+
+	printf("Close (%d)\n", fd);
 
 	shutdown(fd, SHUT_RDWR);
 	close(fd);
@@ -284,7 +293,7 @@ void io_selector_unregister(struct io_selector *selector, int fd)
 	struct io_ops *ops = (struct io_ops *)malloc(sizeof(struct io_ops));
 	if (!ops) {
 		perror("io_selector_unregister: malloc failed to allocate io_ops");
-    return;
+		return;
 	}
 
 	ops->type = IO_OPS_REMOVE;

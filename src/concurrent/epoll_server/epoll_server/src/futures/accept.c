@@ -72,9 +72,9 @@ struct poll accept_poll(struct future *future, struct context context)
 	struct accept_data *data = (struct accept_data *)future->data;
 	if (!data) {
 		perror("accept_poll: data is NULL");
-    return (struct poll){ .state = POLL_READY,
-                          .output = NULL,
-                          .free = NULL };
+		return (struct poll){ .state = POLL_READY,
+				      .output = NULL,
+				      .free = NULL };
 	}
 
 	struct io_selector *selector = data->selector;

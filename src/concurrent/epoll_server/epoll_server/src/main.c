@@ -52,9 +52,9 @@ int main(int argc, char *argv[])
 	pthread_cancel(executor_tid);
 	pthread_join(executor_tid, NULL);
 
-	io_selector_free(selector);
 	spawner_free(spawner);
 	executor_free(executor);
+	io_selector_free(selector);
 
 	printf("Goodbye.\n");
 

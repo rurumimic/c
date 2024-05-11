@@ -32,22 +32,7 @@ struct io_queue *io_queue_init(void)
 void io_queue_free(struct io_queue *queue)
 {
 	assert(queue != NULL);
-
-	struct io_queue_node *node = queue->front;
-
-	while (node) {
-		struct io_queue_node *next = node->next;
-
-		if (node->ops) {
-			if (node->ops->waker.ptr) {
-				node->ops->waker.free(node->ops->waker.ptr);
-			}
-			free(node->ops);
-		}
-
-		free(node);
-		node = next;
-	}
+	assert(queue->length == 0);
 
 	pthread_mutex_destroy(&queue->mutex);
 	free(queue);
@@ -70,7 +55,7 @@ void io_queue_send(struct io_queue *queue, struct io_ops *ops)
 
 	if (!node) {
 		perror("io_queue_send: malloc failed to allocate io_queue_node");
-    return;
+		return;
 	}
 
 	node->ops = ops;

@@ -102,6 +102,7 @@ struct poll server_poll(struct future *future, struct context context)
 
 			struct poll poll = accept->poll(accept, context);
 			if (poll.state == POLL_PENDING) {
+				accept->free(accept);
 				return (struct poll){ .state = POLL_PENDING,
 						      .output = NULL,
 						      .free = NULL };

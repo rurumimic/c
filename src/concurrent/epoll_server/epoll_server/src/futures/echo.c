@@ -78,11 +78,12 @@ struct poll echo_poll(struct future *future, struct context context)
 			struct future *readline = async_reader_readline(reader);
 			if (!readline) {
 				perror("echo_poll: async_reader_readline failed to read line");
-        break;
+				break;
 			}
 
 			struct poll poll = readline->poll(readline, context);
 			if (poll.state == POLL_PENDING) {
+				readline->free(readline);
 				return (struct poll){ .state = POLL_PENDING,
 						      .output = NULL,
 						      .free = NULL };
@@ -114,8 +115,6 @@ struct poll echo_poll(struct future *future, struct context context)
 			echo->state = ECHO_READING;
 		}
 	}
-
-	printf("Close (%d)\n", cfd);
 
 	echo->state = ECHO_FINISHED;
 	return (struct poll){ .state = POLL_READY,
