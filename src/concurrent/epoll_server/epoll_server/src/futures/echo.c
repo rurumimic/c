@@ -4,7 +4,7 @@
 #include "echo.h"
 #include "readline.h"
 
-#include "src/poll.h"
+#include "../poll.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

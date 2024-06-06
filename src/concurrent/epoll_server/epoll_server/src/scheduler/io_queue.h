@@ -8,7 +8,6 @@
 enum io_ops_type {
 	IO_OPS_ADD,
 	IO_OPS_REMOVE,
-	IO_OPS_SHUTDOWN,
 };
 
 struct io_ops {

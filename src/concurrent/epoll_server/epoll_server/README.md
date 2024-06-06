@@ -65,6 +65,8 @@ Goodbye.
 
 ### Client
 
+#### Telnet
+
 ```bash
 telnet localhost 10000
 ```
@@ -80,6 +82,15 @@ Bye.
 ^]
 telnet> quit
 Connection closed.
+```
+
+#### Netcat
+
+Disconnect immediately after sending data to the server.  
+In this case, the connection is terminated before the client's fd is registered with the server.
+
+```bash
+echo "Hello?" | nc -q 0 localhost 10000
 ```
 
 ## Valgrind

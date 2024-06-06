@@ -119,7 +119,7 @@ void io_selector_add_event(struct io_selector *selector, uint32_t flags, int fd,
 
 	struct epoll_event ev;
 
-	ev.events = flags | EPOLLONESHOT;
+	ev.events = flags | EPOLLERR | EPOLLRDHUP | EPOLLONESHOT;
 	ev.data.fd = fd;
 
 	errno = 0;
@@ -154,20 +154,23 @@ void io_selector_remove_event(struct io_selector *selector, int fd,
 	assert(selector != NULL);
 	assert(wakers != NULL);
 
-	struct epoll_event ev;
+	if (wakers_find(wakers, fd)) {
+		struct epoll_event ev;
 
-	ev.events = 0;
-	ev.data.fd = fd;
+		ev.events = 0;
+		ev.data.fd = fd;
 
-	if (epoll_ctl(selector->epfd, EPOLL_CTL_DEL, fd, &ev) == -1) {
-		perror("io_selector_remove_event: epoll_ctl failed to remove event "
-		       "from epoll instance");
-		exit(EXIT_FAILURE);
-	}
+		errno = 0;
+		if (epoll_ctl(selector->epfd, EPOLL_CTL_DEL, fd, &ev) == -1) {
+			perror("io_selector_remove_event: epoll_ctl failed to remove event "
+			       "from epoll instance");
+			exit(EXIT_FAILURE);
+		}
 
-	struct waker waker = wakers_remove(wakers, fd);
-	if (waker.ptr) {
-		waker.free(waker.ptr);
+		struct waker waker = wakers_remove(wakers, fd);
+		if (waker.ptr) {
+			waker.free(waker.ptr);
+		}
 	}
 
 	printf("Close (%d)\n", fd);
