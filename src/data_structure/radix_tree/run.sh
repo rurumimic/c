@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PROJECT_NAME="radixtree"
+
 cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DENABLE_FORMAT=ON \
@@ -8,5 +10,5 @@ cmake \
 
 ninja -C build
 
-./build/main
+./build/${PROJECT_NAME}
 
