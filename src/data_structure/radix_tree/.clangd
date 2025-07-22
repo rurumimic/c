@@ -1,0 +1,11 @@
+CompileFlags:
+  Add:
+    - -std=c11
+    - -Ibuild
+Diagnostics:
+  ClangTidy:
+    Add:
+      - modernize-*
+      - clang-analyzer-*
+    Remove: modernize-use-trailing-return-type
+
