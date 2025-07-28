@@ -11,8 +11,7 @@ target_include_directories(${PROJECT_NAME}
   PRIVATE src
 )
 
-add_executable(example_tree examples/tree.c)
-target_link_libraries(example_tree PRIVATE ${PROJECT_NAME})
-
 include(cmake/format.cmake)
+
+add_subdirectory(examples/tree)
 
