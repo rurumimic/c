@@ -4,7 +4,7 @@ project(radixtree VERSION 1.0)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
-set(TARGET_GROUP debug CACHE STRING "Target group: [release|debug|test]")
+set(TARGET_GROUP debug CACHE STRING "Target group: [release|debug]")
 
 add_library(${PROJECT_NAME}
   src/radixtree.c
@@ -24,13 +24,8 @@ elseif(TARGET_GROUP STREQUAL debug)
 message(STATUS "Configuring for DEBUG mode")
 add_subdirectory(examples/tree)
 
-elseif(TARGET_GROUP STREQUAL test)
-message(STATUS "Configuring for TEST mode")
-enable_testing()
-add_subdirectory(unity)
-add_subdirectory(tests)
 else()
-message(FATAL_ERROR "Unknown TARGET_GROUP: ${TARGET_GROUP}. options: [release|debug|test]")
+message(FATAL_ERROR "Unknown TARGET_GROUP: ${TARGET_GROUP}. options: [release|debug]")
 
 endif()
 

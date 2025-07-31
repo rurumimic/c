@@ -1,0 +1,15 @@
+CompileFlags:
+  CompilationDatabase: build
+  Add:
+    - -std=c11
+    - -DTEST
+    - -I./build/vendor/unity/src
+    - -I../include
+    - -I../src
+Diagnostics:
+  ClangTidy:
+    Add:
+      - modernize-*
+      - clang-analyzer-*
+    Remove: modernize-use-trailing-return-type
+

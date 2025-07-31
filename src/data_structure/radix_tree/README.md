@@ -51,7 +51,16 @@ cmake --build build --target format
 
 ## Test
 
+use `ceedling`:
+
 ```bash
-./test.sh
+gem install ceedling
+```
+
+run tests:
+
+```bash
+cd tests
+ceedling test:all
 ```
 

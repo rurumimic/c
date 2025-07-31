@@ -1,35 +1,36 @@
 # Test
 
-## unity
+## ceedling
 
-- github: [Unity](https:/https://www.throwtheswitch.org/unity/github.com/ThrowTheSwitch/Unity)
-- [unity](https://www.throwtheswitch.org/unity)
-- [with cmake](https://www.throwtheswitch.org/build/cmake)
+- [ceedling](https://www.throwtheswitch.org/ceedling)
+- github: [docs/CeedlingPacket.md](https://github.com/ThrowTheSwitch/Ceedling/blob/master/docs/CeedlingPacket.md)
 
-### Install Unity
+### Install ceedling
 
 ```bash
-mkdir unity
-git clone https://github.com/ThrowTheSwitch/Unity.git temp/Unity
+gem install ceedling
 ```
 
+### Create a new project
+
 ```bash
-cp temp/Unity/src/unity.c unity/
-cp temp/Unity/src/unity.h unity/
-cp temp/Unity/src/unity_internals.h unity/
+ceedling new tests
 ```
 
-```bash
-rm -rf temp
-```
+### Edit `project.yml`
 
-## cpputest
-
-- github: [cpputest](https://github.com/cpputest/cpputest)
-
-### Install cpputest
-
-```bash
-apt install cpputest
+```yaml
+:paths:
+  :test:
+    - +:test/**
+    - -:test/support
+  :source:
+    - ../src/**
+  :include:
+    - ../include/**
+    - ../src/**
+  :support:
+    - test/support
+  :libraries: []
 ```
 
