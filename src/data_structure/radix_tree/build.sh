@@ -23,5 +23,5 @@ cmake \
 echo
 
 echo "[INFO] Build with Ninja:"
-ninja -C build -DTARGET_GROUP=test
+ninja -C build
 
