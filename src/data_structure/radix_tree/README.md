@@ -6,6 +6,7 @@
 cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DENABLE_FORMAT=ON \
+-DTARGET_GROUP=test \
 -S . -B build \
 -G Ninja
 ```
@@ -46,5 +47,11 @@ cmake --build build --target clang-format
 cmake --build build --target format
 # make -C build format
 # ninja -C build format
+```
+
+## Test
+
+```bash
+./test.sh
 ```
 

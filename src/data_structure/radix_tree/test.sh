@@ -18,10 +18,15 @@ echo "[INFO] CMAKE Configure:"
 cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DENABLE_FORMAT=ON \
+-DTARGET_GROUP=test \
 -S . -B build \
 -G Ninja
 echo
 
 echo "[INFO] Build with Ninja:"
-ninja -C build -DTARGET_GROUP=test
+ninja -C build
+
+echo "[INFO] Test with ctest:"
+cd build
+ctest
 

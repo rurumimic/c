@@ -6,4 +6,6 @@ typedef struct radixtree_node {
   int value;
 } radixtree_node;
 
+int add(int a, int b);
+
 #endif  // RADIXTREE_NODE_H
