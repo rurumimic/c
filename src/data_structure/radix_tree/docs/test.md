@@ -1,5 +1,18 @@
 # Test
 
+## cmocka
+
+- [cmocka](https://cmocka.org/)
+- gitlab: [cmocka](https://gitlab.com/cmocka/cmocka)
+
+### Install cmocka
+
+```bash
+sudo apt install --no-install-recommends libcmocka-dev
+```
+
+---
+
 ## ceedling
 
 - [ceedling](https://www.throwtheswitch.org/ceedling)

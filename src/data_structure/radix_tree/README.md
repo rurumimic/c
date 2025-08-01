@@ -3,16 +3,27 @@
 ## Build
 
 ```bash
+./run_build.sh clean
+```
+
+or:
+
+```bash
+rm -rf build
+```
+
+```bash
 cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DENABLE_FORMAT=ON \
--DTARGET_GROUP=test \
+-DTARGET_GROUP=debug \
 -S . -B build \
 -G Ninja
 ```
 
 - `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` export compile commands
 - `-DENABLE_FORMAT=ON` enable format target
+- `-DTARGET_GROUP=debug` build debug target
 - `-DFORMAT_STYLE=Google` use Google format style
 - `--debug-output` print debug output
 - `-S .` source directory
@@ -51,16 +62,35 @@ cmake --build build --target format
 
 ## Test
 
-use `ceedling`:
-
-```bash
-gem install ceedling
-```
+- docs: [install cmocka](docs/test.md)
 
 run tests:
 
 ```bash
-cd tests
-ceedling test:all
+./run_build.sh clean test
+```
+
+or:
+
+```bash
+rm -rf build
+```
+
+```bash
+cmake \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+-DENABLE_FORMAT=ON \
+-DTARGET_GROUP=test \
+-S . -B build \
+-G Ninja
+```
+
+```bash
+ninja -C build
+```
+
+```bash
+cd build/tests
+ctest --output-on-failure
 ```
 
