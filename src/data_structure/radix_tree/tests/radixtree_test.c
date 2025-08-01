@@ -6,6 +6,10 @@
 #include <cmocka.h>
 // clang-format on
 
+#include <radixtree.h>
+
+#include "radixtree_node.h"
+
 /* A test case that does nothing and succeeds. */
 static void null_test_success(void **state) { (void)state; /* unused */ }
 

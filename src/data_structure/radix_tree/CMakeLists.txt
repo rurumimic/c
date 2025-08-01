@@ -16,6 +16,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 include(cmake/format.cmake)
+# include(cmake/compile_commands.cmake)
 
 if(TARGET_GROUP STREQUAL release)
 message(STATUS "Configuring for RELEASE mode")
@@ -34,3 +35,4 @@ else()
 message(FATAL_ERROR "Unknown TARGET_GROUP: ${TARGET_GROUP}")
 
 endif()
+

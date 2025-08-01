@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: build/debug
+  CompilationDatabase: ../build/test
   Add:
     - -std=c11
 Diagnostics:

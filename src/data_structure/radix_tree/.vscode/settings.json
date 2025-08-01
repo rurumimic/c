@@ -1,3 +1,6 @@
 {
-    "cmake.useCMakePresets": "auto"
+    "cmake.useCMakePresets": "auto",
+    "files.associations": {
+        "*.h": "c"
+    }
 }
