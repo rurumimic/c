@@ -2,10 +2,8 @@
 
 ## Tools
 
-- C11
-- Clang
-- CMake
-- Ninja
+- build: cmake, ninja
+- test: cmocka
 
 ## Build
 
