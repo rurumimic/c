@@ -2,20 +2,16 @@
 
 ## Tools
 
-- build: cmake, ninja
+- build: cmake 3.20+, ninja
 - test: cmocka
 
 ## Build
 
 ```bash
-./run_build.sh clean
+make
 ```
 
 or:
-
-```bash
-rm -rf build
-```
 
 ```bash
 cmake \
@@ -36,7 +32,8 @@ cmake \
 - `-G Ninja` use Ninja generator
 
 ```bash
-cmake --build build
+cmake --build --preset build-debug
+# cmake --build build
 # make -C build
 # ninja -C build
 ```
@@ -52,7 +49,8 @@ cmake --build build
 ### Make .clang-format
 
 ```bash
-cmake --build build --target clang-format
+make clang-format
+# cmake --build build --target clang-format
 # make -C build clang-format
 # ninja -C build clang-format
 ```
@@ -60,42 +58,16 @@ cmake --build build --target clang-format
 ### Format code
 
 ```bash
-cmake --build build --target format
+make format
+# cmake --build build --target format
 # make -C build format
 # ninja -C build format
 ```
 
 ## Test
 
-- docs: [install cmocka](docs/test.md)
-
-run tests:
+- install: [cmocka](docs/test.md)
 
 ```bash
-./run_build.sh clean test
+make test
 ```
-
-or:
-
-```bash
-rm -rf build
-```
-
-```bash
-cmake \
--DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
--DENABLE_FORMAT=ON \
--DTARGET_GROUP=test \
--S . -B build \
--G Ninja
-```
-
-```bash
-ninja -C build
-```
-
-```bash
-cd build/tests
-ctest --output-on-failure
-```
-

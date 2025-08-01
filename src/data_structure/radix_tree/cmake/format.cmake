@@ -15,7 +15,7 @@ if(ENABLE_FORMAT)
 
         add_custom_target(
             format
-            COMMAND bash -c "find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/examples \
+            COMMAND bash -c "find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests ${CMAKE_SOURCE_DIR}/examples \
             -type d \\( -name build -o -name .git -o -name .cache \\) -prune -false -o \
             \\( -name \"*.h\" -o -name \"*.c\" -o -name \"*.cpp\" \\) -print0 \
             | xargs -0 -r ${CLANG_FORMAT} -i"

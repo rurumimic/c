@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 project(radixtree VERSION 1.0)
 
@@ -26,6 +26,7 @@ add_subdirectory(examples/tree)
 
 elseif(TARGET_GROUP STREQUAL test)
 message(STATUS "Configuring for TEST mode")
+enable_testing()
 find_package(cmocka REQUIRED)
 add_subdirectory(tests)
 
@@ -33,4 +34,3 @@ else()
 message(FATAL_ERROR "Unknown TARGET_GROUP: ${TARGET_GROUP}")
 
 endif()
-

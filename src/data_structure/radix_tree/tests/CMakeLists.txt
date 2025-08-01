@@ -11,6 +11,4 @@ target_link_libraries(radixtree_test
   cmocka::cmocka
 )
 
-enable_testing()
 add_test(NAME RadixtreeTest COMMAND radixtree_test)
-

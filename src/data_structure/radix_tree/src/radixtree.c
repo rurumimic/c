@@ -8,7 +8,6 @@ struct radixtree {
 };
 
 radixtree *radixtree_init() {
-
   radixtree *tree = (radixtree *)malloc(sizeof(radixtree));
   if (!tree) {
     return NULL;

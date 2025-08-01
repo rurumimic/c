@@ -1,7 +1,10 @@
 #!/bin/sh
 
 CLEAN_BUILD=false
-TARGET_GROUP="debug"
+PRESET_NAME="configure-debug"
+BUILD_PRESET="build-debug"
+TEST_PRESET=""
+RUN_FORMAT=false
 VERBOSE_MODE=false
 
 for arg in "$@"; do
@@ -10,10 +13,16 @@ for arg in "$@"; do
       CLEAN_BUILD=true
       ;;
     release)
-      TARGET_GROUP="release"
+      PRESET_NAME="configure-release"
+      BUILD_PRESET="build-release"
       ;;
     test)
-      TARGET_GROUP="test"
+      PRESET_NAME="configure-test"
+      BUILD_PRESET="build-unit-tests"
+      TEST_PRESET="run-unit-tests"
+      ;;
+    format)
+      RUN_FORMAT=true
       ;;
     -v|--verbose)
       VERBOSE_MODE=true
@@ -25,6 +34,7 @@ for arg in "$@"; do
       echo "  clean            Remove the build directory before configuring"
       echo "  release          Configure with release target group"
       echo "  test             Configure with test target group (runs ctest)"
+      echo "  format           Run clang-format on source files"
       echo "  -v, --verbose    Enable verbose mode"
       echo "  -h, --help       Show this help message"
       exit 0
@@ -44,31 +54,30 @@ if [ "$CLEAN_BUILD" = true ]; then
   fi
 fi
 
-echo "[INFO] CMAKE Configure: (TARGET_GROUP=$TARGET_GROUP)"
-cmake \
-  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DENABLE_FORMAT=ON \
-  -DTARGET_GROUP=$TARGET_GROUP \
-  -S . -B build \
-  -G Ninja
+echo "[INFO] Configure with preset: $PRESET_NAME"
+cmake --preset "$PRESET_NAME"
 echo
 
-echo "[INFO] Build with Ninja:"
-if [ "$VERBOSE_MODE" = true ]; then
-  ninja -v -C build
-else
-  ninja -C build
-fi
-echo
-
-if [ "$TARGET_GROUP" = "test" ]; then
-  echo "[INFO] Run CTest:"
-  cd build/tests
-  if [ "$VERBOSE_MODE" = true ]; then
-    ctest --output-on-failure --verbose
-  else
-    ctest --output-on-failure
-  fi
+if [ "$RUN_FORMAT" = true ]; then
+  echo "[INFO] Running clang-format on source files"
+  cmake --build --preset "$BUILD_PRESET" --target format
   echo
 fi
 
+echo "[INFO] Build with preset: $BUILD_PRESET"
+if [ "$VERBOSE_MODE" = true ]; then
+  cmake --build --preset "$BUILD_PRESET" --verbose
+else
+  cmake --build --preset "$BUILD_PRESET"
+fi
+echo
+
+if [ -n "$TEST_PRESET" ]; then
+  echo "[INFO] Run tests with preset: $TEST_PRESET"
+  if [ "$VERBOSE_MODE" = true ]; then
+    ctest --preset "$TEST_PRESET" --verbose
+  else
+    ctest --preset "$TEST_PRESET"
+  fi
+  echo
+fi
