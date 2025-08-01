@@ -1,5 +1,12 @@
 # Radix Tree
 
+## Tools
+
+- C11
+- Clang
+- CMake
+- Ninja
+
 ## Build
 
 ```bash

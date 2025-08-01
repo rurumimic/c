@@ -2,6 +2,7 @@
 
 CLEAN_BUILD=false
 TARGET_GROUP="debug"
+VERBOSE_MODE=false
 
 for arg in "$@"; do
   case "$arg" in
@@ -14,14 +15,18 @@ for arg in "$@"; do
     test)
       TARGET_GROUP="test"
       ;;
+    -v|--verbose)
+      VERBOSE_MODE=true
+      ;;
     -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo
       echo "Options:"
-      echo "  clean        Remove the build directory before configuring"
-      echo "  release      Configure with release target group"
-      echo "  test         Configure with test target group (runs ctest)"
-      echo "  -h, --help   Show this help message"
+      echo "  clean            Remove the build directory before configuring"
+      echo "  release          Configure with release target group"
+      echo "  test             Configure with test target group (runs ctest)"
+      echo "  -v, --verbose    Enable verbose mode"
+      echo "  -h, --help       Show this help message"
       exit 0
       ;;
     *)
@@ -49,12 +54,21 @@ cmake \
 echo
 
 echo "[INFO] Build with Ninja:"
-ninja -C build
+if [ "$VERBOSE_MODE" = true ]; then
+  ninja -v -C build
+else
+  ninja -C build
+fi
 echo
 
 if [ "$TARGET_GROUP" = "test" ]; then
   echo "[INFO] Run CTest:"
-  cd build/tests && ctest --output-on-failure
+  cd build/tests
+  if [ "$VERBOSE_MODE" = true ]; then
+    ctest --output-on-failure --verbose
+  else
+    ctest --output-on-failure
+  fi
   echo
 fi
 
