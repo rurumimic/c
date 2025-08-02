@@ -24,8 +24,18 @@ just --list
 
 ## Build
 
+bulid library + examples:
+
 ```bash
+just
+# or
 just debug
+```
+
+bulid library:
+
+```bash
+just release
 ```
 
 ---
@@ -38,7 +48,7 @@ just debug
 
 ---
 
-## Format
+## Format with .clang-format
 
 ```bash
 just format
@@ -49,6 +59,8 @@ just format
 ## Test
 
 ### Install cmocka library
+
+- [cmocka](https://cmocka.org/)
 
 ```bash
 sudo apt install --no-install-recommends libcmocka-dev

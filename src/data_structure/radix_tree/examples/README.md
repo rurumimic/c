@@ -3,7 +3,6 @@
 ## Tree
 
 ```bash
-./build.sh
-./build/examples/tree/example_tree
+just
+./build/debug/examples/tree/example_tree
 ```
-
