@@ -46,4 +46,3 @@ ceedling new tests
     - test/support
   :libraries: []
 ```
-

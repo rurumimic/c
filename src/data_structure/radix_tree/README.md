@@ -3,71 +3,59 @@
 ## Tools
 
 - build: cmake 3.20+, ninja
+- script: just or make
 - test: cmocka
+
+### Justfile
+
+- github: [casey/just](https://github.com/casey/just)
+
+```bash
+cargo install just
+```
+
+Available recipes:
+
+```bash
+just --list
+```
+
+---
 
 ## Build
 
 ```bash
-make
+just debug
 ```
 
-or:
+---
+
+## Run Examples
 
 ```bash
-cmake \
--DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
--DENABLE_FORMAT=ON \
--DTARGET_GROUP=debug \
--S . -B build \
--G Ninja
+./build/debug/examples/example_tree
 ```
 
-- `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` export compile commands
-- `-DENABLE_FORMAT=ON` enable format target
-- `-DTARGET_GROUP=debug` build debug target
-- `-DFORMAT_STYLE=Google` use Google format style
-- `--debug-output` print debug output
-- `-S .` source directory
-- `-B build` build directory
-- `-G Ninja` use Ninja generator
-
-```bash
-cmake --build --preset build-debug
-# cmake --build build
-# make -C build
-# ninja -C build
-```
-
-## Run
-
-```bash
-./build/radixtree
-```
+---
 
 ## Format
 
-### Make .clang-format
-
 ```bash
-make clang-format
-# cmake --build build --target clang-format
-# make -C build clang-format
-# ninja -C build clang-format
+just format
 ```
 
-### Format code
-
-```bash
-make format
-# cmake --build build --target format
-# make -C build format
-# ninja -C build format
-```
+---
 
 ## Test
 
-- install: [cmocka](docs/test.md)
+### Install cmocka library
 
 ```bash
-make test
+sudo apt install --no-install-recommends libcmocka-dev
+```
+
+### Run test
+
+```bash
+just test
 ```
