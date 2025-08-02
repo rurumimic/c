@@ -10,5 +10,10 @@ target_link_libraries(radixtree_test
   radixtree
   cmocka::cmocka
 )
+target_link_options(radixtree_test
+  PRIVATE
+  -Wl,--wrap=rdx_malloc
+  -Wl,--wrap=rdx_free
+)
 
 add_test(NAME RadixtreeTest COMMAND radixtree_test)

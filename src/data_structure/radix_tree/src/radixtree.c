@@ -1,6 +1,7 @@
 #include <radixtree.h>
 #include <stdlib.h>
 
+#include "rdx_alloc.h"
 #include "radixtree_node.h"
 
 struct radixtree {
@@ -8,14 +9,14 @@ struct radixtree {
 };
 
 radixtree *radixtree_init() {
-  radixtree *tree = (radixtree *)malloc(sizeof(radixtree));
+  radixtree *tree = (radixtree *)rdx_malloc(sizeof(radixtree));
   if (!tree) {
     return NULL;
   }
 
-  radixtree_node *root = (radixtree_node *)malloc(sizeof(radixtree_node));
+  radixtree_node *root = (radixtree_node *)rdx_malloc(sizeof(radixtree_node));
   if (!root) {
-    free(tree);
+    rdx_free(tree);
     return NULL;
   }
 
@@ -29,8 +30,8 @@ void radixtree_free(radixtree *tree) {
   }
 
   if (tree->root) {
-    free(tree->root);
+    rdx_free(tree->root);
   }
 
-  free(tree);
+  rdx_free(tree);
 }

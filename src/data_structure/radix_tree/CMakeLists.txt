@@ -9,6 +9,7 @@ set(TARGET_GROUP debug CACHE STRING "Target group: [release|debug|test]")
 add_library(${PROJECT_NAME}
   src/radixtree.c
   src/radixtree_node.c
+  src/rdx_alloc.c
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC ${PROJECT_SOURCE_DIR}/include
