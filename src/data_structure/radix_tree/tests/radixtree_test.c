@@ -6,9 +6,9 @@
 #include <cmocka.h>
 // clang-format on
 
+#include <radixtree.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <radixtree.h>
 
 #include "radixtree_node.h"
 

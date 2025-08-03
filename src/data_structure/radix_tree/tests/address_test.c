@@ -6,42 +6,62 @@
 #include <cmocka.h>
 // clang-format on
 
+#include <stdalign.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 void print_binary(uintptr_t value) {
-    int bits = sizeof(uintptr_t) * 8;  // 64 or 32
-    for (int i = bits - 1; i >= 0; i--) {
-        printf("%c", (value & ((uintptr_t)1 << i)) ? '1' : '0');
-        if (i % 8 == 0 && i != 0) {
-            printf(" ");
-        }
+  int bits = sizeof(uintptr_t) * 8;  // 64 or 32
+  for (int i = bits - 1; i >= 0; i--) {
+    printf("%c", (value & ((uintptr_t)1 << i)) ? '1' : '0');
+    if (i % 8 == 0 && i != 0) {
+      printf(" ");
     }
-    printf("\n");
+  }
+  printf("\n");
 }
 
 static void test_malloc_returns_8byte_aligned_memory(void **state) {
   (void)state; /* unused */
 
-  void *ptr = malloc(1);
-  uintptr_t address = (uintptr_t)ptr;
+  void *ptr_1 = malloc(sizeof(char) * 1);
+  void *ptr_2 = malloc(sizeof(char) * 1);
+  uintptr_t address_1 = (uintptr_t)ptr_1;
+  uintptr_t address_2 = (uintptr_t)ptr_2;
 
+  // clang-format off
   /**
-   * Address: 00000000 00000000 01100011 11100110 01001101 10011000 01110010 11110000
+   * Max Align of: 16 bytes
+   * Address: 00000000 00000000 01011110 11010101 01100011 00100100 00010010 11110000
    * & 0b111: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000111
    *        = 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-   
-  printf("Address: ");
-  print_binary(address);
-  printf("& 0b111: ");
+   *
+   * Address: 00000000 00000000 01011110 11010101 01100011 00100100 00010011 00010000
+   * & 0b111: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000111
+   *        = 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+   */
+  // clang-format on
+
+  printf("Max Align of: %zu bytes\n", alignof(max_align_t));
+  printf("%p: ", (void *)address_1);
+  print_binary(address_1);
+  printf("       & 0b111: ");
   print_binary(0b111);
-  printf("       = ");
-  print_binary(address & 0b111);
-  */
+  printf("              = ");
+  print_binary(address_1 & 0b111);
 
-  assert_true((address & 0b111) == 0);
+  printf("%p: ", (void *)address_2);
+  print_binary(address_2);
+  printf("       & 0b111: ");
+  print_binary(0b111);
+  printf("              = ");
+  print_binary(address_2 & 0b111);
 
-  free(ptr);
+  assert_true((address_1 & 0b111) == 0);
+  assert_true((address_2 & 0b111) == 0);
+
+  free(ptr_1);
+  free(ptr_2);
 }
 
 int main(void) {
