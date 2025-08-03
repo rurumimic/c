@@ -1,8 +1,7 @@
 #include <radixtree.h>
-#include <stdlib.h>
 
-#include "rdx_alloc.h"
 #include "radixtree_node.h"
+#include "rdx_alloc.h"
 
 struct radixtree {
   radixtree_node *root;
