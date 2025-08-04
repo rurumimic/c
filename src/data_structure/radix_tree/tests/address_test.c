@@ -42,20 +42,20 @@ static void test_malloc_returns_8byte_aligned_memory(void **state) {
    */
   // clang-format on
 
-  printf("Max Align of: %zu bytes\n", alignof(max_align_t));
-  printf("%p: ", (void *)address_1);
-  print_binary(address_1);
-  printf("       & 0b111: ");
-  print_binary(0b111);
-  printf("              = ");
-  print_binary(address_1 & 0b111);
+  // printf("Max Align of: %zu bytes\n", alignof(max_align_t));
+  // printf("%p: ", (void *)address_1);
+  // print_binary(address_1);
+  // printf("       & 0b111: ");
+  // print_binary(0b111);
+  // printf("              = ");
+  // print_binary(address_1 & 0b111);
 
-  printf("%p: ", (void *)address_2);
-  print_binary(address_2);
-  printf("       & 0b111: ");
-  print_binary(0b111);
-  printf("              = ");
-  print_binary(address_2 & 0b111);
+  // printf("%p: ", (void *)address_2);
+  // print_binary(address_2);
+  // printf("       & 0b111: ");
+  // print_binary(0b111);
+  // printf("              = ");
+  // print_binary(address_2 & 0b111);
 
   assert_true((address_1 & 0b111) == 0);
   assert_true((address_2 & 0b111) == 0);
