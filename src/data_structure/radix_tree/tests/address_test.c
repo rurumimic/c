@@ -21,6 +21,13 @@ void print_binary(uintptr_t value) {
   printf("\n");
 }
 
+static void test_max_align_size(void **state) {
+  (void)state; /* unused */
+
+  size_t max_align_size = alignof(max_align_t);
+  assert_true(max_align_size == 16);
+}
+
 static void test_malloc_returns_8byte_aligned_memory(void **state) {
   (void)state; /* unused */
 
@@ -66,6 +73,7 @@ static void test_malloc_returns_8byte_aligned_memory(void **state) {
 
 int main(void) {
   const struct CMUnitTest tests[] = {
+      cmocka_unit_test(test_max_align_size),
       cmocka_unit_test(test_malloc_returns_8byte_aligned_memory),
   };
 
