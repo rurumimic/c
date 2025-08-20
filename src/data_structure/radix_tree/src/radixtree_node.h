@@ -20,9 +20,6 @@
 #define RDX_HEIGHT DIV_ROUND_UP(RDX_INDEX_BITS, RDX_MAP_SHIFT)  // 32: 7, 64: 10
 #define RDX_ROOT_SHIFT ((RDX_HEIGHT - 1) * RDX_MAP_SHIFT)  // 32: 24, 64: 54
 
-#define RDX_MAX_MARKS 1                             // [tombstone, ...]
-#define RDX_MARK_LONGS BITS_TO_LONGS(RDX_MAP_SIZE)  // 32 bits: 2, 64 bits: 1
-
 // clang-format off
 /**
  * Radix Tree Node Structure
@@ -70,7 +67,7 @@
  * node6: shift 18, offset 12, parent node5
  * node7: shift 12, offset 36, parent node6
  * node8: shift  6, offset  4, parent node7
- * node9: shift  0, offset 47, parent node8 <-- leaf node
+ * node9: shift  0, offset 47, parent node8 <-- leaf node. save the pointer value
  * 
  */
 // clang-format on
@@ -80,8 +77,6 @@ typedef enum {
   RDX_TAG_VALUE = 1,
   RDX_TAG_NODE = 2,
 } rdx_tag;
-
-typedef enum { RDX_MARK_TOMBSTONE = 0 } rdx_mark;
 
 typedef struct {
   uintptr_t value;  // [ ... ptr][3bit tag]
@@ -93,10 +88,9 @@ typedef struct radixtree_node {
   uint8_t count;                  // total count
   struct radixtree_node* parent;  // to parent node
   rdx_tagged_ptr values[RDX_MAP_SIZE];  // value or child nodes
-  unsigned long marks[RDX_MAX_MARKS][RDX_MARK_LONGS];
 } radixtree_node;
 
-static inline rdx_tagged_ptr rdx_tagged_init(void* ptr, rdx_tag tag) {
+static inline rdx_tagged_ptr rdx_tag_ptr(void* ptr, rdx_tag tag) {
   uintptr_t value = ((uintptr_t)ptr & ~RDX_TAG_MASK) | (tag & RDX_TAG_MASK);
   return (rdx_tagged_ptr){.value = value};
 }
@@ -114,6 +108,27 @@ static inline bool rdx_is_value(rdx_tagged_ptr tp) {
 static inline bool rdx_is_node(rdx_tagged_ptr tp) {
   return (tp.value & RDX_TAG_MASK) == RDX_TAG_NODE;
 }
+
+radixtree_node* radixtree_node_init(uint8_t shift, uint8_t offset,
+                                    radixtree_node* parent);
+void radixtree_node_free(radixtree_node* node);
+radixtree_node* radixtree_node_search(void* ptr);
+
+/** for future use when implementing lock-free
+
+#define RDX_MAX_MARKS 1  // [tombstone, ...]
+#define RDX_MARK_LONGS BITS_TO_LONGS(RDX_MAP_SIZE)  // 32 bits: 2, 64 bits: 1
+
+typedef enum { RDX_MARK_TOMBSTONE = 0 } rdx_mark;
+
+typedef struct radixtree_node {
+  uint8_t shift;                  // level in the tree
+  uint8_t offset;                 // index in the parent node's values array
+  uint8_t count;                  // total count
+  struct radixtree_node* parent;  // to parent node
+  rdx_tagged_ptr values[RDX_MAP_SIZE];  // value or child nodes
+  unsigned long marks[RDX_MAX_MARKS][RDX_MARK_LONGS];
+} radixtree_node;
 
 static inline void rdx_set_mark(radixtree_node* node, rdx_mark mark,
                                 size_t index) {
@@ -135,5 +150,6 @@ static inline bool rdx_test_mark(const radixtree_node* node, rdx_mark mark,
   const unsigned bit = index % BITS_PER_LONG;
   return (node->marks[mark][word] & (1UL << bit)) != 0;
 }
+*/
 
 #endif  // RADIXTREE_NODE_H
