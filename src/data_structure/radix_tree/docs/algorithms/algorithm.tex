@@ -1,0 +1,21 @@
+\documentclass{article}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+\begin{algorithm}
+  \caption{BinarySearch}
+  \begin{algorithmic}[1]
+    \Procedure{BinarySearch}{$A, x$}
+    \State $l \gets 1,\ r \gets n$
+    \While{$l \le r$}
+    \State $m \gets \lfloor(l+r)/2\rfloor$
+    \If{$A_m = x$} \State \Return $m$ \EndIf
+    \If{$A_m < x$} \State $l \gets m+1$ \Else \State $r \gets m-1$ \EndIf
+    \EndWhile
+    \State \Return $\bot$
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+\end{document}
