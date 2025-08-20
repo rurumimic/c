@@ -82,7 +82,7 @@ void radixtree_insert(radixtree *tree, uintptr_t key) {
   }
 
   if (rdx_is_value(tagged_ptr)) {
-    if (rdx_untag_ptr(tagged_ptr) == key) {
+    if ((uintptr_t)rdx_untag_ptr(tagged_ptr) == key) {
       return;  // Key already exists
     }
 

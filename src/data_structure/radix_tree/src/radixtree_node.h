@@ -79,7 +79,7 @@ typedef enum {
 } rdx_tag;
 
 typedef struct {
-  uintptr_t value;  // [ ... ptr][3bit tag]
+  uintptr_t value;  // [ ... ptr][4bit tag]
 } rdx_tagged_ptr;
 
 typedef struct radixtree_node {
