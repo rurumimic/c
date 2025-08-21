@@ -35,42 +35,38 @@ void radixtree_free(radixtree *tree) {
   rdx_free(tree);
 }
 
-void radixtree_insert(radixtree *tree, uintptr_t key) {
+radixtree_status radixtree_insert(radixtree *tree, uintptr_t key) {
   if (!tree || !tree->root) {
-    return;
+    return RADIXTREE_ERR_INVAL;
   }
 
   uintptr_t index = key >> RDX_TAG_BITS;
   radixtree_node *current = tree->root;
   uint8_t shift = current->shift;
 
-  while (shift) {
-    size_t offset = (index >> shift) & RDX_MAP_MASK;
+  while (current->shift) {
+    size_t offset = (index >> current->shift) & RDX_MAP_MASK;
     rdx_tagged_ptr tagged_ptr = current->values[offset];
 
     if (rdx_is_empty(tagged_ptr)) {
-      shift -= RDX_MAP_SHIFT;
-
-      radixtree_node *child = radixtree_node_init(shift, offset, current);
+      radixtree_node *child = radixtree_node_init(
+          (uint8_t)(current->shift - RDX_MAP_SHIFT), (uint8_t)offset, current);
       if (!child) {
-        return;  // ERROR
+        return RADIXTREE_ERR_NOMEM;
       }
 
       current->values[offset] = rdx_tag_ptr((void *)child, RDX_TAG_NODE);
       current->count++;
       current = child;
-
       continue;
     }
 
     if (rdx_is_node(tagged_ptr)) {
-      shift -= RDX_MAP_SHIFT;
       current = (radixtree_node *)rdx_untag_ptr(tagged_ptr);
-
       continue;
     }
 
-    return;  // ERROR
+    return RADIXTREE_ERR_INVAL;
   }
 
   // Leaf Node
@@ -78,23 +74,20 @@ void radixtree_insert(radixtree *tree, uintptr_t key) {
   rdx_tagged_ptr tagged_ptr = current->values[offset];
 
   if (rdx_is_node(tagged_ptr)) {
-    return;  // ERROR
+    return RADIXTREE_ERR_INVAL;
   }
 
   if (rdx_is_value(tagged_ptr)) {
     if ((uintptr_t)rdx_untag_ptr(tagged_ptr) == key) {
-      return;  // Key already exists
+      return RADIXTREE_EXISTS;
     }
-
-    // Overwrite existing value
     current->values[offset] = rdx_tag_ptr((void *)key, RDX_TAG_VALUE);
-    return;  // SUCCESS
+    return RADIXTREE_REPLACED;
   }
 
   current->values[offset] = rdx_tag_ptr((void *)key, RDX_TAG_VALUE);
   current->count++;
-
-  return;  // SUCCESS
+  return RADIXTREE_OK;
 }
 
 void *radixtree_delete(radixtree *tree, uintptr_t key) { return NULL; }
