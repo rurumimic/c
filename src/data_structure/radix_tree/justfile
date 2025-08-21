@@ -1,0 +1,46 @@
+# Justfile for radixtree project
+
+verbose := if env("VERBOSE", "") == "" { "" } else { "--verbose" }
+
+# = debug
+default:
+    just debug
+
+# clean target
+clean:
+    @echo "[Just] Clean build directory"
+    rm -rf build
+
+# Build targets
+
+# build library + examples
+debug:
+    @echo "[Just] Build in debug mode"
+    cmake --preset configure-debug
+    cmake --build --preset build-debug {{verbose}}
+
+# build library
+release:
+    @echo "[Just] Build in release mode"
+    cmake --preset configure-release
+    cmake --build --preset build-release {{verbose}}
+
+# test with cmocka
+test:
+    @echo "[Just] Build and run unit tests"
+    cmake --preset configure-test
+    cmake --build --preset build-unit-tests
+    ctest --preset run-unit-tests --output-on-failure {{verbose}}
+
+# Format targets
+
+# format code with clang-format
+format:
+    @echo "[Just] Run clang-format"
+    cmake --build --preset build-debug --target format
+
+# generate .clang-format file
+clang-format:
+    @echo "[Just] Generate .clang-format file"
+    cmake --preset configure-debug
+    cmake --build --preset build-debug --target clang-format

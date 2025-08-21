@@ -1,0 +1,73 @@
+# Radix Tree
+
+## Tools
+
+- build: cmake 3.20+, ninja
+- script: just or make
+- test: cmocka
+
+### Justfile
+
+- github: [casey/just](https://github.com/casey/just)
+
+```bash
+cargo install just
+```
+
+Available recipes:
+
+```bash
+just --list
+```
+
+---
+
+## Build
+
+bulid library + examples:
+
+```bash
+just
+# or
+just debug
+```
+
+bulid library:
+
+```bash
+just release
+```
+
+---
+
+## Run Examples
+
+```bash
+./build/debug/examples/example_tree
+```
+
+---
+
+## Format with .clang-format
+
+```bash
+just format
+```
+
+---
+
+## Test
+
+### Install cmocka library
+
+- [cmocka](https://cmocka.org/)
+
+```bash
+sudo apt install --no-install-recommends libcmocka-dev
+```
+
+### Run test
+
+```bash
+just test
+```
