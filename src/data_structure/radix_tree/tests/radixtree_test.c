@@ -57,13 +57,23 @@ static void test_radixtree_insert(void **state) {
   expect_function_call(__wrap_rdx_malloc);  // node 9 leaf
 
   // radixtree_free
-  expect_function_call(__wrap_rdx_free);
-  expect_function_call(__wrap_rdx_free);
+  expect_function_call(__wrap_rdx_free);  // node 9 leaf
+  expect_function_call(__wrap_rdx_free);  // node 8
+  expect_function_call(__wrap_rdx_free);  // node 7
+  expect_function_call(__wrap_rdx_free);  // node 6
+  expect_function_call(__wrap_rdx_free);  // node 5
+  expect_function_call(__wrap_rdx_free);  // node 4
+  expect_function_call(__wrap_rdx_free);  // node 3
+  expect_function_call(__wrap_rdx_free);  // node 2
+  expect_function_call(__wrap_rdx_free);  // node 1
+
+  expect_function_call(__wrap_rdx_free);  // root
+  expect_function_call(__wrap_rdx_free);  // tree
 
   radixtree *tree = radixtree_init();
   assert_non_null(tree);
 
-  radixtree_status status = radixtree_insert(tree, 42);
+  radixtree_status status = radixtree_insert(tree, 42, sizeof(int) * 4);
   assert_int_equal(status, RADIXTREE_OK);
 
   radixtree_free(tree);
@@ -72,6 +82,7 @@ static void test_radixtree_insert(void **state) {
 int main(void) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_radixtree_init_and_free),
+      cmocka_unit_test(test_radixtree_insert),
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);
