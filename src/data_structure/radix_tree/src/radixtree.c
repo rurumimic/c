@@ -24,25 +24,27 @@ radixtree *radixtree_init() {
 }
 
 void radixtree_free(radixtree *tree) {
-  if (!tree) {
+  if (!tree || !tree->root) {
     return;
   }
 
-  if (tree->root) {
-    rdx_free(tree->root);
-  }
-
+  radixtree_clear(tree);
+  rdx_free(tree->root);
   rdx_free(tree);
 }
 
-radixtree_status radixtree_insert(radixtree *tree, uintptr_t key) {
+radixtree_status radixtree_insert(radixtree *tree, uintptr_t key,
+                                  size_t value) {
   if (!tree || !tree->root) {
     return RADIXTREE_ERR_INVAL;
   }
 
+  if (value > RDX_VALUE_MAX) {
+    return RADIXTREE_ERR_OVERFLOW;
+  }
+
   uintptr_t index = key >> RDX_TAG_BITS;
   radixtree_node *current = tree->root;
-  uint8_t shift = current->shift;
 
   while (current->shift) {
     size_t offset = (index >> current->shift) & RDX_MAP_MASK;
@@ -55,7 +57,7 @@ radixtree_status radixtree_insert(radixtree *tree, uintptr_t key) {
         return RADIXTREE_ERR_NOMEM;
       }
 
-      current->values[offset] = rdx_tag_ptr((void *)child, RDX_TAG_NODE);
+      current->values[offset] = rdx_tag_ptr((uintptr_t)child, RDX_TAG_NODE);
       current->count++;
       current = child;
       continue;
@@ -81,15 +83,117 @@ radixtree_status radixtree_insert(radixtree *tree, uintptr_t key) {
     if ((uintptr_t)rdx_untag_ptr(tagged_ptr) == key) {
       return RADIXTREE_EXISTS;
     }
-    current->values[offset] = rdx_tag_ptr((void *)key, RDX_TAG_VALUE);
+    current->values[offset] = rdx_tag_ptr((uintptr_t)value, RDX_TAG_VALUE);
     return RADIXTREE_REPLACED;
   }
 
-  current->values[offset] = rdx_tag_ptr((void *)key, RDX_TAG_VALUE);
+  current->values[offset] = rdx_tag_ptr((uintptr_t)value, RDX_TAG_VALUE);
   current->count++;
   return RADIXTREE_OK;
 }
 
-void *radixtree_delete(radixtree *tree, uintptr_t key) { return NULL; }
-void *radixtree_search(radixtree *tree, uintptr_t key) { return NULL; }
-void radixtree_clear(radixtree *tree) { return; }
+radixtree_status radixtree_delete(radixtree *tree, uintptr_t key,
+                                  size_t *deleted_value) {
+  if (!tree || !tree->root) {
+    return RADIXTREE_ERR_INVAL;
+  }
+
+  uintptr_t index = key >> RDX_TAG_BITS;
+  radixtree_node *current = tree->root;
+
+  while (current->shift) {
+    size_t offset = (index >> current->shift) & RDX_MAP_MASK;
+    rdx_tagged_ptr tagged_ptr = current->values[offset];
+
+    if (rdx_is_node(tagged_ptr)) {
+      current = (radixtree_node *)rdx_untag_ptr(tagged_ptr);
+      continue;
+    }
+
+    return RADIXTREE_NOTFOUND;
+  }
+
+  // Leaf Node
+  size_t offset = index & RDX_MAP_MASK;
+  rdx_tagged_ptr tagged_ptr = current->values[offset];
+
+  if (rdx_is_value(tagged_ptr)) {
+    if (deleted_value) {
+      *deleted_value = (size_t)rdx_untag_ptr(tagged_ptr);
+    }
+    current->values[offset] = rdx_tag_ptr((uintptr_t)NULL, RDX_TAG_EMPTY);
+    current->count--;
+    return RADIXTREE_OK;
+  }
+
+  return RADIXTREE_NOTFOUND;
+}
+
+radixtree_status radixtree_search(radixtree *tree, uintptr_t key,
+                                  size_t *found_value) {
+  if (!tree || !tree->root) {
+    return RADIXTREE_ERR_INVAL;
+  }
+
+  uintptr_t index = key >> RDX_TAG_BITS;
+  radixtree_node *current = tree->root;
+
+  while (current->shift) {
+    size_t offset = (index >> current->shift) & RDX_MAP_MASK;
+    rdx_tagged_ptr tagged_ptr = current->values[offset];
+
+    if (rdx_is_node(tagged_ptr)) {
+      current = (radixtree_node *)rdx_untag_ptr(tagged_ptr);
+      continue;
+    }
+
+    if (rdx_is_empty(tagged_ptr)) {
+      return RADIXTREE_NOTFOUND;
+    }
+
+    return RADIXTREE_ERR_INVAL;
+  }
+
+  // Leaf Node
+  size_t offset = index & RDX_MAP_MASK;
+  rdx_tagged_ptr tagged_ptr = current->values[offset];
+
+  if (rdx_is_value(tagged_ptr)) {
+    if (found_value) {
+      *found_value = (size_t)rdx_untag_ptr(tagged_ptr);
+    }
+    return RADIXTREE_OK;
+  }
+
+  return RADIXTREE_NOTFOUND;
+}
+
+radixtree_status radixtree_clear(radixtree *tree) {
+  if (!tree || !tree->root) {
+    return RADIXTREE_ERR_INVAL;
+  }
+
+  for (size_t i = 0; i < RDX_MAP_SIZE; i++) {
+    rdx_tagged_ptr tagged_ptr = tree->root->values[i];
+    if (rdx_is_node(tagged_ptr)) {
+      radixtree_node_free((radixtree_node *)rdx_untag_ptr(tagged_ptr));
+    }
+  }
+
+  return RADIXTREE_OK;
+}
+
+radixtree_status radixtree_prune(radixtree *tree) {
+  if (!tree || !tree->root) {
+    return RADIXTREE_ERR_INVAL;
+  }
+
+  for (size_t i = 0; i < RDX_MAP_SIZE; i++) {
+    rdx_tagged_ptr tagged_ptr = tree->root->values[i];
+    if (rdx_is_node(tagged_ptr)) {
+      radixtree_node_prune((radixtree_node *)rdx_untag_ptr(tagged_ptr));
+    }
+  }
+
+  return RADIXTREE_OK;
+}

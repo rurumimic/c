@@ -20,6 +20,11 @@
 #define RDX_HEIGHT DIV_ROUND_UP(RDX_INDEX_BITS, RDX_MAP_SHIFT)  // 32: 7, 64: 10
 #define RDX_ROOT_SHIFT ((RDX_HEIGHT - 1) * RDX_MAP_SHIFT)  // 32: 24, 64: 54
 
+#define RDX_UINTPTR_MAX ((uintptr_t)(UINTPTR_MAX >> RDX_TAG_BITS))
+#define RDX_VALUE_MAX                                                 \
+  ((size_t)((RDX_UINTPTR_MAX < (uintptr_t)SIZE_MAX) ? RDX_UINTPTR_MAX \
+                                                    : (uintptr_t)SIZE_MAX))
+
 // clang-format off
 /**
  * Radix Tree Node Structure
@@ -67,7 +72,7 @@
  * node6: shift 18, offset 12, parent node5
  * node7: shift 12, offset 36, parent node6
  * node8: shift  6, offset  4, parent node7
- * node9: shift  0, offset 47, parent node8 <-- leaf node. save the pointer value
+ * node9: shift  0, offset 47, parent node8 <-- leaf node. save the size value
  * 
  */
 // clang-format on
@@ -90,13 +95,30 @@ typedef struct radixtree_node {
   rdx_tagged_ptr values[RDX_MAP_SIZE];  // value or child nodes
 } radixtree_node;
 
-static inline rdx_tagged_ptr rdx_tag_ptr(void* ptr, rdx_tag tag) {
-  uintptr_t value = ((uintptr_t)ptr & ~RDX_TAG_MASK) | (tag & RDX_TAG_MASK);
+static inline rdx_tagged_ptr rdx_tag_ptr(uintptr_t ptr, rdx_tag tag) {
+  if (tag == RDX_TAG_EMPTY) {
+    return (rdx_tagged_ptr){.value = 0};
+  }
+
+  if (tag == RDX_TAG_VALUE) {
+    uintptr_t value = (ptr << RDX_TAG_BITS) | RDX_TAG_VALUE;
+    return (rdx_tagged_ptr){.value = value};
+  }
+
+  uintptr_t value = (ptr & ~RDX_TAG_MASK) | RDX_TAG_NODE;
   return (rdx_tagged_ptr){.value = value};
 }
 
-static inline void* rdx_untag_ptr(rdx_tagged_ptr tp) {
-  return (void*)(tp.value & ~RDX_TAG_MASK);
+static inline uintptr_t rdx_untag_ptr(rdx_tagged_ptr tp) {
+  if (tp.value == 0) {
+    return tp.value;
+  }
+
+  if ((tp.value & RDX_TAG_MASK) == RDX_TAG_VALUE) {
+    return (tp.value >> RDX_TAG_BITS);
+  }
+
+  return (tp.value & ~RDX_TAG_MASK);
 }
 
 static inline bool rdx_is_empty(rdx_tagged_ptr tp) { return tp.value == 0; }
@@ -112,7 +134,8 @@ static inline bool rdx_is_node(rdx_tagged_ptr tp) {
 radixtree_node* radixtree_node_init(uint8_t shift, uint8_t offset,
                                     radixtree_node* parent);
 void radixtree_node_free(radixtree_node* node);
-radixtree_node* radixtree_node_search(void* ptr);
+void radixtree_node_prune(radixtree_node* node);
+void radixtree_node_unlink(radixtree_node* node);
 
 /** for future use when implementing lock-free
 
