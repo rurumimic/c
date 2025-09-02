@@ -20,3 +20,7 @@ add_test(NAME RadixtreeTest COMMAND radixtree_test)
 add_executable(address_test address_test.c)
 target_link_libraries(address_test PRIVATE cmocka::cmocka)
 add_test(NAME AddressTest COMMAND address_test)
+
+add_executable(size_test size_test.c)
+target_link_libraries(size_test PRIVATE cmocka::cmocka)
+add_test(NAME SizeTest COMMAND size_test)

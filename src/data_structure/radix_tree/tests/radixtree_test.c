@@ -25,13 +25,46 @@ void __wrap_rdx_free(void *ptr) {
 static void test_radixtree_init_and_free(void **state) {
   (void)state; /* unused */
 
+  // radixtree_init
   expect_function_call(__wrap_rdx_malloc);
   expect_function_call(__wrap_rdx_malloc);
+  // radixtree_free
   expect_function_call(__wrap_rdx_free);
   expect_function_call(__wrap_rdx_free);
 
   radixtree *tree = radixtree_init();
   assert_non_null(tree);
+
+  radixtree_free(tree);
+}
+
+static void test_radixtree_insert(void **state) {
+  (void)state; /* unused */
+
+  // radixtree_init
+  expect_function_call(__wrap_rdx_malloc);
+  expect_function_call(__wrap_rdx_malloc);
+
+  // radixtree_insert
+  expect_function_call(__wrap_rdx_malloc);  // node 1
+  expect_function_call(__wrap_rdx_malloc);  // node 2
+  expect_function_call(__wrap_rdx_malloc);  // node 3
+  expect_function_call(__wrap_rdx_malloc);  // node 4
+  expect_function_call(__wrap_rdx_malloc);  // node 5
+  expect_function_call(__wrap_rdx_malloc);  // node 6
+  expect_function_call(__wrap_rdx_malloc);  // node 7
+  expect_function_call(__wrap_rdx_malloc);  // node 8
+  expect_function_call(__wrap_rdx_malloc);  // node 9 leaf
+
+  // radixtree_free
+  expect_function_call(__wrap_rdx_free);
+  expect_function_call(__wrap_rdx_free);
+
+  radixtree *tree = radixtree_init();
+  assert_non_null(tree);
+
+  radixtree_status status = radixtree_insert(tree, 42);
+  assert_int_equal(status, RADIXTREE_OK);
 
   radixtree_free(tree);
 }
