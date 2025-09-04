@@ -51,28 +51,45 @@ void radixtree_node_prune(radixtree_node* node) {
     node->parent->count--;
     node->parent->values[node->offset] =
         rdx_tag_ptr((uintptr_t)NULL, RDX_TAG_EMPTY);
-    radixtree_node_unlink(node);
+    radixtree_node_unlink(node);  // TODO: duplicate logic error
     rdx_free(node);
   }
 }
 
 void radixtree_node_unlink(radixtree_node* node) {
   if (!node) {
-    return;
+    return;  // TODO: ERR INVAL
   }
 
   radixtree_node* parent = node->parent;
   if (!parent) {
-    return;
+    return;  // TODO: ERR INVAL
   }
 
   uint8_t offset = node->offset;
+  if (offset >= RDX_MAP_SIZE) {
+    return;  // TODO: ERR OVERFLOW
+  }
 
   rdx_tagged_ptr tagged_ptr = parent->values[offset];
-  if (rdx_is_node(tagged_ptr) && rdx_untag_ptr(tagged_ptr) == (uintptr_t)node) {
-    parent->values[offset] = rdx_tag_ptr((uintptr_t)NULL, RDX_TAG_EMPTY);
-    if (parent->count > 0) {
-      parent->count--;
-    }
+
+  if (!rdx_is_node(tagged_ptr)) {
+    return;  // TODO: ERR INVAL
   }
+
+  if (rdx_untag_ptr(tagged_ptr) != (uintptr_t)node) {
+    return;  // TODO: ERR INVAL
+  }
+
+  if (parent->count == 0) {
+    return;  // TODO: ERR UNDERFLOW
+  }
+
+  parent->values[offset] = rdx_tag_ptr((uintptr_t)NULL, RDX_TAG_EMPTY);
+  parent->count--;
+
+  node->parent = NULL;
+  node->offset = 0;
+
+  // TODO: OK
 }

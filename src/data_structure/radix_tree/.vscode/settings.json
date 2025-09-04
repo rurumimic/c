@@ -3,6 +3,8 @@
     "files.associations": {
         "**/*.h": "c",
         "**/*.hpp": "cpp",
-        "**/*.hxx": "cpp"
+        "**/*.hxx": "cpp",
+        "atomic": "c",
+        "cstdint": "c"
     }
 }

@@ -13,9 +13,10 @@ typedef enum {
   RADIXTREE_ERR_NOMEM,
   RADIXTREE_ERR_INVAL,
   RADIXTREE_ERR_OVERFLOW,
+  RADIXTREE_ERR_UNDERFLOW,
 } radixtree_status;
 
-radixtree *radixtree_init(void);
+radixtree *radixtree_init();
 void radixtree_free(radixtree *tree);
 radixtree_status radixtree_insert(radixtree *tree, uintptr_t key, size_t value);
 radixtree_status radixtree_delete(radixtree *tree, uintptr_t key,
