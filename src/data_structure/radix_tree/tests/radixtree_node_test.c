@@ -34,7 +34,7 @@ static void test_radixtree_node_init_and_free(void **state) {
   radixtree_node *node = radixtree_node_init(RDX_ROOT_SHIFT, 0, NULL);
   assert_non_null(node);
 
-  radixtree_node_free(node);
+  assert_int_equal(radixtree_node_free(node), RADIXTREE_OK);
 
   assert_int_equal(g_malloc_calls, g_free_calls);
 }
@@ -64,7 +64,7 @@ static void test_radixtree_node_free(void **state) {
   child->values[offset] = rdx_tag_ptr((uintptr_t)grand_child, RDX_TAG_NODE);
   child->count++;
 
-  radixtree_node_free(parent);
+  assert_int_equal(radixtree_node_free(parent), RADIXTREE_OK);
 
   assert_int_equal(g_malloc_calls, g_free_calls);
 }
@@ -102,13 +102,13 @@ static void test_radixtree_node_prune(void **state) {
 
   sibling->count++;
 
-  radixtree_node_prune(parent);
+  assert_int_equal(radixtree_node_prune(parent), RADIXTREE_OK);
 
   assert_true(rdx_is_empty(parent->values[offset]));
   assert_true(rdx_is_node(parent->values[offset + 1]));
   assert_int_equal(parent->count, 1);
 
-  radixtree_node_free(parent);
+  assert_int_equal(radixtree_node_free(parent), RADIXTREE_OK);
 
   assert_int_equal(g_malloc_calls, g_free_calls);
 }
@@ -135,8 +135,8 @@ static void test_radixtree_node_unlink(void **state) {
   assert_int_equal(parent->count, 0);
   assert_true(rdx_is_empty(parent->values[offset]));
 
-  radixtree_node_free(child);
-  radixtree_node_free(parent);
+  assert_int_equal(radixtree_node_free(child), RADIXTREE_OK);
+  assert_int_equal(radixtree_node_free(parent), RADIXTREE_OK);
 
   assert_int_equal(g_malloc_calls, g_free_calls);
 }

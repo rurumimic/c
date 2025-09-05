@@ -171,12 +171,12 @@ static void test_scenario_prune(void **state) {
   assert_int_equal(radixtree_insert(tree, key4, value4), RADIXTREE_OK);
 
   assert_int_equal(radixtree_delete(tree, key1, NULL), RADIXTREE_OK);
-  radixtree_prune(tree);
+  assert_int_equal(radixtree_prune(tree), RADIXTREE_OK);
   assert_int_equal(radixtree_search(tree, key1, NULL), RADIXTREE_NOTFOUND);
   assert_int_equal(radixtree_search(tree, key2, NULL), RADIXTREE_OK);
 
   assert_int_equal(radixtree_delete(tree, key2, NULL), RADIXTREE_OK);
-  radixtree_prune(tree);
+  assert_int_equal(radixtree_prune(tree), RADIXTREE_OK);
   assert_int_equal(radixtree_search(tree, key1, NULL), RADIXTREE_NOTFOUND);
   assert_int_equal(radixtree_search(tree, key2, NULL), RADIXTREE_NOTFOUND);
   assert_int_equal(radixtree_search(tree, key3, NULL), RADIXTREE_OK);

@@ -173,10 +173,15 @@ radixtree_status radixtree_clear(radixtree *tree) {
     return RADIXTREE_ERR_INVAL;
   }
 
+  radixtree_status status;
+
   for (size_t i = 0; i < RDX_MAP_SIZE; i++) {
     rdx_tagged_ptr tagged_ptr = tree->root->values[i];
     if (rdx_is_node(tagged_ptr)) {
-      radixtree_node_free((radixtree_node *)rdx_untag_ptr(tagged_ptr));
+      status = radixtree_node_free((radixtree_node *)rdx_untag_ptr(tagged_ptr));
+      if (status != RADIXTREE_OK) {
+        return status;
+      }
     }
   }
 
@@ -184,6 +189,8 @@ radixtree_status radixtree_clear(radixtree *tree) {
 }
 
 radixtree_status radixtree_prune(radixtree *tree) {
+  radixtree_status status;
+
   if (!tree || !tree->root) {
     return RADIXTREE_ERR_INVAL;
   }
@@ -191,7 +198,11 @@ radixtree_status radixtree_prune(radixtree *tree) {
   for (size_t i = 0; i < RDX_MAP_SIZE; i++) {
     rdx_tagged_ptr tagged_ptr = tree->root->values[i];
     if (rdx_is_node(tagged_ptr)) {
-      radixtree_node_prune((radixtree_node *)rdx_untag_ptr(tagged_ptr));
+      status =
+          radixtree_node_prune((radixtree_node *)rdx_untag_ptr(tagged_ptr));
+      if (status != RADIXTREE_OK) {
+        return status;
+      }
     }
   }
 

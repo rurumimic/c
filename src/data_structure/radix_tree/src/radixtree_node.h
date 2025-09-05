@@ -1,6 +1,7 @@
 #ifndef RADIXTREE_NODE_H
 #define RADIXTREE_NODE_H
 
+#include <radixtree_status.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -133,9 +134,9 @@ static inline bool rdx_is_node(rdx_tagged_ptr tp) {
 
 radixtree_node* radixtree_node_init(uint8_t shift, uint8_t offset,
                                     radixtree_node* parent);
-void radixtree_node_free(radixtree_node* node);
-void radixtree_node_prune(radixtree_node* node);
-void radixtree_node_unlink(radixtree_node* node);
+radixtree_status radixtree_node_free(radixtree_node* node);
+radixtree_status radixtree_node_prune(radixtree_node* node);
+radixtree_status radixtree_node_unlink(radixtree_node* node);
 
 /** for future use when implementing lock-free
 

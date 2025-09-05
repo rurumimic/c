@@ -4,17 +4,9 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uintptr_t
 
+#include "radixtree_status.h"
+
 typedef struct radixtree radixtree;
-typedef enum {
-  RADIXTREE_OK = 0,
-  RADIXTREE_EXISTS,
-  RADIXTREE_NOTFOUND,
-  RADIXTREE_REPLACED,
-  RADIXTREE_ERR_NOMEM,
-  RADIXTREE_ERR_INVAL,
-  RADIXTREE_ERR_OVERFLOW,
-  RADIXTREE_ERR_UNDERFLOW,
-} radixtree_status;
 
 radixtree *radixtree_init();
 void radixtree_free(radixtree *tree);
