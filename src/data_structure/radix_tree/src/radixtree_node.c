@@ -48,10 +48,7 @@ void radixtree_node_prune(radixtree_node* node) {
   }
 
   if (node->count == 0) {
-    node->parent->count--;
-    node->parent->values[node->offset] =
-        rdx_tag_ptr((uintptr_t)NULL, RDX_TAG_EMPTY);
-    radixtree_node_unlink(node);  // TODO: duplicate logic error
+    radixtree_node_unlink(node);
     rdx_free(node);
   }
 }
