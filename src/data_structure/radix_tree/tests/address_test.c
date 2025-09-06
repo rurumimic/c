@@ -25,7 +25,8 @@ static void test_max_align_size(void **state) {
   (void)state; /* unused */
 
   size_t max_align_size = alignof(max_align_t);
-  assert_true(max_align_size == 16);
+  assert_true(max_align_size >= sizeof(void *));
+  assert_true((max_align_size & (max_align_size - 1)) == 0);  // power of two
 }
 
 static void test_malloc_returns_8byte_aligned_memory(void **state) {

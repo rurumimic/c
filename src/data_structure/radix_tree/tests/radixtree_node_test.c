@@ -94,8 +94,7 @@ static void test_radixtree_node_prune(void **state) {
 
   parent->values[offset] = rdx_tag_ptr((uintptr_t)child, RDX_TAG_NODE);
   parent->values[offset + 1] = rdx_tag_ptr((uintptr_t)sibling, RDX_TAG_NODE);
-  parent->count++;
-  parent->count++;
+  parent->count += 2;
 
   child->values[offset] = rdx_tag_ptr((uintptr_t)grand_child, RDX_TAG_NODE);
   child->count++;
