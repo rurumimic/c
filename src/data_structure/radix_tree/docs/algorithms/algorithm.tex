@@ -4,18 +4,162 @@
 \usepackage{algpseudocode}
 
 \begin{document}
+
 \begin{algorithm}
-  \caption{BinarySearch}
+  \caption{radixtree\_insert(tree, key, value)}
   \begin{algorithmic}[1]
-    \Procedure{BinarySearch}{$A, x$}
-    \State $l \gets 1,\ r \gets n$
-    \While{$l \le r$}
-    \State $m \gets \lfloor(l+r)/2\rfloor$
-    \If{$A_m = x$} \State \Return $m$ \EndIf
-    \If{$A_m < x$} \State $l \gets m+1$ \Else \State $r \gets m-1$ \EndIf
+    \Procedure{RadixtreeInsert}{tree, key, value}
+    \If{$tree = \mathrm{NULL}$ \textbf{ or } $tree.root = \mathrm{NULL}$}
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \If{$value > \mathrm{RDX\_VALUE\_MAX}$}
+    \State \Return RADIXTREE\_ERR\_OVERFLOW
+    \EndIf
+    \State $index \gets key \gg \mathrm{RDX\_TAG\_BITS}$
+    \State $current \gets tree.root$
+    \While{$current.shift > 0$}
+    \State $offset \gets (index \gg current.shift)\ \&\ \mathrm{RDX\_MAP\_MASK}$
+    \State $tagged \gets current.values[offset]$
+    \If{$\mathrm{IsEmpty}(tagged)$}
+    \State $child \gets \mathrm{NodeInit}(current.shift - \mathrm{RDX\_MAP\_SHIFT},\ offset,\ current)$
+    \If{$child = \mathrm{NULL}$} \State \Return RADIXTREE\_ERR\_NOMEM \EndIf
+    \State $current.values[offset] \gets \mathrm{TagPtr}(child,\ NODE)$
+    \State $current.count \gets current.count + 1$
+    \State $current \gets child$ \textbf{; continue}
+    \ElsIf{$\mathrm{IsNode}(tagged)$}
+    \State $current \gets \mathrm{UntagPtr}(tagged)$ \textbf{; continue}
+    \Else
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
     \EndWhile
-    \State \Return $\bot$
+    % Leaf node
+    \State $offset \gets index\ \&\ \mathrm{RDX\_MAP\_MASK}$
+    \State $tagged \gets current.values[offset]$
+    \If{$\mathrm{IsNode}(tagged)$}
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \If{$\mathrm{IsValue}(tagged)$}
+    \If{$\mathrm{UntagPtr}(tagged) = value$}
+    \State \Return RADIXTREE\_EXISTS
+    \EndIf
+    \State $current.values[offset] \gets \mathrm{TagPtr}(value,\ VALUE)$
+    \State \Return RADIXTREE\_REPLACED
+    \EndIf
+    \State $current.values[offset] \gets \mathrm{TagPtr}(value,\ VALUE)$
+    \State $current.count \gets current.count + 1$
+    \State \Return RADIXTREE\_OK
     \EndProcedure
   \end{algorithmic}
 \end{algorithm}
+
+\begin{algorithm}
+  \caption{radixtree\_delete(tree, key, \&deleted\_value)}
+  \begin{algorithmic}[1]
+    \Procedure{RadixtreeDelete}{tree, key, deleted\_value}
+    \If{$tree = \mathrm{NULL}$ \textbf{ or } $tree.root = \mathrm{NULL}$}
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \State $index \gets key \gg \mathrm{RDX\_TAG\_BITS}$
+    \State $current \gets tree.root$
+    \While{$current.shift > 0$}
+    \State $offset \gets (index \gg current.shift)\ \&\ \mathrm{RDX\_MAP\_MASK}$
+    \State $tagged \gets current.values[offset]$
+    \If{$\mathrm{IsNode}(tagged)$}
+    \State $current \gets \mathrm{UntagPtr}(tagged)$
+    \Else
+    \State \Return RADIXTREE\_NOTFOUND
+    \EndIf
+    \EndWhile
+    % Leaf node
+    \State $offset \gets index\ \&\ \mathrm{RDX\_MAP\_MASK}$
+    \State $tagged \gets current.values[offset]$
+    \If{$\mathrm{IsValue}(tagged)$}
+    \If{$deleted\_value \neq \mathrm{NULL}$}
+    \State $\ast deleted\_value \gets \mathrm{UntagPtr}(tagged)$
+    \EndIf
+    \State $current.values[offset] \gets \mathrm{TagPtr}(\mathrm{NULL},\ EMPTY)$
+    \State $current.count \gets current.count - 1$
+    \State \Return RADIXTREE\_OK
+    \EndIf
+    \State \Return RADIXTREE\_NOTFOUND
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{radixtree\_search(tree, key, \&found\_value)}
+  \begin{algorithmic}[1]
+    \Procedure{RadixtreeSearch}{tree, key, found\_value}
+    \If{$tree = \mathrm{NULL}$ \textbf{ or } $tree.root = \mathrm{NULL}$}
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \State $index \gets key \gg \mathrm{RDX\_TAG\_BITS}$
+    \State $current \gets tree.root$
+    \While{$current.shift > 0$}
+    \State $offset \gets (index \gg current.shift)\ \&\ \mathrm{RDX\_MAP\_MASK}$
+    \State $tagged \gets current.values[offset]$
+    \If{$\mathrm{IsNode}(tagged)$}
+    \State $current \gets \mathrm{UntagPtr}(tagged)$
+    \ElsIf{$\mathrm{IsEmpty}(tagged)$}
+    \State \Return RADIXTREE\_NOTFOUND
+    \Else
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \EndWhile
+    % Leaf node
+    \State $offset \gets index\ \&\ \mathrm{RDX\_MAP\_MASK}$
+    \State $tagged \gets current.values[offset]$
+    \If{$\mathrm{IsValue}(tagged)$}
+    \If{$found\_value \neq \mathrm{NULL}$}
+    \State $\ast found\_value \gets \mathrm{UntagPtr}(tagged)$
+    \EndIf
+    \State \Return RADIXTREE\_OK
+    \EndIf
+    \State \Return RADIXTREE\_NOTFOUND
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{radixtree\_clear(tree)}
+  \begin{algorithmic}[1]
+    \Procedure{RadixtreeClear}{tree}
+    \If{$tree = \mathrm{NULL}$ \textbf{ or } $tree.root = \mathrm{NULL}$}
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \For{$i \gets 0$ \textbf{to} $\mathrm{RDX\_MAP\_SIZE} - 1$}
+    \State $tagged \gets tree.root.values[i]$
+    \If{$\mathrm{IsNode}(tagged)$}
+    \State $status \gets \mathrm{NodeFree}(\mathrm{UntagPtr}(tagged))$
+    \If{$status \neq \mathrm{RADIXTREE\_OK}$}
+    \State \Return $status$
+    \EndIf
+    \EndIf
+    \EndFor
+    \State \Return RADIXTREE\_OK
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{radixtree\_prune(tree)}
+  \begin{algorithmic}[1]
+    \Procedure{RadixtreePrune}{tree}
+    \If{$tree = \mathrm{NULL}$ \textbf{ or } $tree.root = \mathrm{NULL}$}
+    \State \Return RADIXTREE\_ERR\_INVAL
+    \EndIf
+    \For{$i \gets 0$ \textbf{to} $\mathrm{RDX\_MAP\_SIZE} - 1$}
+    \State $tagged \gets tree.root.values[i]$
+    \If{$\mathrm{IsNode}(tagged)$}
+    \State $status \gets \mathrm{NodePrune}(\mathrm{UntagPtr}(tagged))$
+    \If{$status \neq \mathrm{RADIXTREE\_OK}$}
+    \State \Return $status$
+    \EndIf
+    \EndIf
+    \EndFor
+    \State \Return RADIXTREE\_OK
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
 \end{document}
