@@ -140,8 +140,6 @@ static void test_scenario_prune(void **state) {
   test_fixture *fixture = *(test_fixture **)state;
   radixtree *tree = fixture->tree;
 
-  // Removed unused variables found_value and deleted_value
-
   // node            1|2|3|4|5|6|7|8|
   //                             ^^^^
   uintptr_t key1 = 0x00005ED5632412F0;
