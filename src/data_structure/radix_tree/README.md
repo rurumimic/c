@@ -1,5 +1,7 @@
 # Radix Tree
 
+A simple radix tree implementation for single-threaded use.
+
 ## Tools
 
 - build: cmake 3.20+, ninja
