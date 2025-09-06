@@ -50,7 +50,8 @@ just release
 ### valgrind
 
 ```bash
-valgrind --leak-check=yes ./build/debug/examples/tree/example_tree
+valgrind --show-error-list=yes --leak-check=yes \
+./build/debug/examples/tree/example_tree
 ```
 
 ---
