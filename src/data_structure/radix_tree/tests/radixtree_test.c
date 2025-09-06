@@ -105,11 +105,15 @@ static void test_scenario_crud(void **state) {
   size_t value2 = sizeof(int) * 16;
   size_t value3 = sizeof(int) * 32;
   size_t value4 = sizeof(int) * 64;
+  size_t value4_replaced = sizeof(int) * 128;
 
   assert_int_equal(radixtree_insert(tree, key1, value1), RADIXTREE_OK);
   assert_int_equal(radixtree_insert(tree, key2, value2), RADIXTREE_OK);
   assert_int_equal(radixtree_insert(tree, key3, value3), RADIXTREE_OK);
   assert_int_equal(radixtree_insert(tree, key4, value4), RADIXTREE_OK);
+  assert_int_equal(radixtree_insert(tree, key4, value4), RADIXTREE_EXISTS);
+  assert_int_equal(radixtree_insert(tree, key4, value4_replaced),
+                   RADIXTREE_REPLACED);
 
   assert_int_equal(radixtree_search(tree, key1, &found_value), RADIXTREE_OK);
   assert_int_equal(found_value, value1);
@@ -121,7 +125,7 @@ static void test_scenario_crud(void **state) {
   assert_int_equal(found_value, value3);
 
   assert_int_equal(radixtree_search(tree, key4, &found_value), RADIXTREE_OK);
-  assert_int_equal(found_value, value4);
+  assert_int_equal(found_value, value4_replaced);
 
   assert_int_equal(radixtree_delete(tree, key1, &deleted_value), RADIXTREE_OK);
   assert_int_equal(deleted_value, value1);

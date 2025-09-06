@@ -80,7 +80,7 @@ radixtree_status radixtree_insert(radixtree *tree, uintptr_t key,
   }
 
   if (rdx_is_value(tagged_ptr)) {
-    if ((uintptr_t)rdx_untag_ptr(tagged_ptr) == key) {
+    if ((uintptr_t)rdx_untag_ptr(tagged_ptr) == value) {
       return RADIXTREE_EXISTS;
     }
     current->values[offset] = rdx_tag_ptr((uintptr_t)value, RDX_TAG_VALUE);
