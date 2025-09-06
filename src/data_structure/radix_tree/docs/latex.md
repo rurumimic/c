@@ -8,3 +8,11 @@
 sudo apt install \
 texlive texlive-science texlive-latex-extra latexmk
 ```
+
+## Build PDF
+
+```bash
+cd algorithms
+
+latexmk -pdf -interaction=nonstopmode -halt-on-error -g algorithm.tex
+```
