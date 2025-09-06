@@ -7,6 +7,14 @@ just
 ./build/debug/examples/tree/example_tree
 ```
 
+### valgrind
+
+```bash
+valgrind --leak-check=yes ./build/debug/examples/tree/example_tree
+```
+
+### Run
+
 ```bash
 [insert]
 insert  key=0x58b3ce65f4e0 -> OK (size=16)

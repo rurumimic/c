@@ -5,6 +5,7 @@
 - build: cmake 3.20+, ninja
 - script: just or make
 - test: cmocka
+- valgrind
 
 ### Justfile
 
@@ -44,6 +45,12 @@ just release
 
 ```bash
 ./build/debug/examples/example_tree
+```
+
+### valgrind
+
+```bash
+valgrind --leak-check=yes ./build/debug/examples/tree/example_tree
 ```
 
 ---

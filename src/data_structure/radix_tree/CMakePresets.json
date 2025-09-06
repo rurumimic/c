@@ -15,7 +15,8 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "TARGET_GROUP": "debug",
-                "ENABLE_FORMAT": "ON"
+                "ENABLE_FORMAT": "ON",
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -gdwarf-2 -Wall -Wextra"
             }
         },
         {
