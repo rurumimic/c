@@ -56,46 +56,40 @@ fn main() {
 
         let mut value: usize = 0;
         let mut ret: i32;
-        ret = radixtree_ffi_insert(tree, 0x10000, 100);
-        println!(
-            "Insert 0x10000 -> 100: {}",
-            RadixtreeStatus::from_errno(ret)
-        );
-        ret = radixtree_ffi_insert(tree, 0x20000, 200);
-        println!(
-            "Insert 0x20000 -> 200: {}",
-            RadixtreeStatus::from_errno(ret)
-        );
+        ret = radixtree_ffi_insert(tree, 0x10, 100);
+        println!("Insert 0x10 -> 100: {}", RadixtreeStatus::from_errno(ret));
+        ret = radixtree_ffi_insert(tree, 0x20, 200);
+        println!("Insert 0x20 -> 200: {}", RadixtreeStatus::from_errno(ret));
 
-        ret = radixtree_ffi_search(tree, 0x10000, &mut value as *mut usize);
+        ret = radixtree_ffi_search(tree, 0x10, &mut value as *mut usize);
         println!(
-            "Search 0x10000: {}, value: {}",
+            "Search 0x10: {}, value: {}",
             RadixtreeStatus::from_errno(ret),
             value
         );
-        ret = radixtree_ffi_search(tree, 0x20000, &mut value as *mut usize);
+        ret = radixtree_ffi_search(tree, 0x20, &mut value as *mut usize);
         println!(
-            "Search 0x20000: {}, value: {}",
+            "Search 0x20: {}, value: {}",
             RadixtreeStatus::from_errno(ret),
             value
         );
 
-        ret = radixtree_ffi_delete(tree, 0x10000, &mut value as *mut usize);
+        ret = radixtree_ffi_delete(tree, 0x10, &mut value as *mut usize);
         println!(
-            "Delete 0x10000: {}, deleted value: {}",
+            "Delete 0x10: {}, deleted value: {}",
             RadixtreeStatus::from_errno(ret),
             value
         );
 
-        ret = radixtree_ffi_search(tree, 0x10000, &mut value as *mut usize);
+        ret = radixtree_ffi_search(tree, 0x10, &mut value as *mut usize);
         println!(
-            "Search 0x10000 after deletion: {}, value: {}",
+            "Search 0x10 after deletion: {}, value: {}",
             RadixtreeStatus::from_errno(ret),
             value
         );
-        ret = radixtree_ffi_search(tree, 0x20000, &mut value as *mut usize);
+        ret = radixtree_ffi_search(tree, 0x20, &mut value as *mut usize);
         println!(
-            "Search 0x20000: {}, value: {}",
+            "Search 0x20: {}, value: {}",
             RadixtreeStatus::from_errno(ret),
             value
         );
