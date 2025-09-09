@@ -82,9 +82,8 @@ static void test_scenario_crud(void **state) {
   size_t found_value;
   size_t deleted_value;
 
-  // node            1|2|3|4|5|6|7|8|
-  //                             ^^^^
   uintptr_t key1 = 0x00005ED5632412F0;
+  //                             ^^
   uintptr_t key2 = 0x00005ED563244240;
   uintptr_t key3 = 0x0000FFD563244240;
   //                     ^^
@@ -142,9 +141,8 @@ static void test_scenario_prune(void **state) {
   test_fixture *fixture = *(test_fixture **)state;
   radixtree *tree = fixture->tree;
 
-  // node            1|2|3|4|5|6|7|8|
-  //                             ^^^^
   uintptr_t key1 = 0x00005ED5632412F0;
+  //                             ^^
   uintptr_t key2 = 0x00005ED563244240;
   uintptr_t key3 = 0x0000FFD563244240;
   //                     ^^
