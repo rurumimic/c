@@ -2,6 +2,12 @@
 
 A simple radix tree implementation for single-threaded use.
 
+Documentation:
+
+- [Radix Tree Node Structure](docs/README.md)
+
+---
+
 ## Tools
 
 - build: cmake 3.20+, ninja

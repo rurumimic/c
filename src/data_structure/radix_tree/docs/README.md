@@ -2,7 +2,7 @@
 
 ## Radix Tree Node Structure
 
-### shift and tree level
+### tree levels
 
 ```txt
 shift: 64 bits  32 bits
