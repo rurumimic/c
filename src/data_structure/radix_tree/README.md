@@ -27,7 +27,7 @@ just --list
 
 ## Build
 
-bulid library + examples:
+build library + examples:
 
 ```bash
 just
@@ -35,7 +35,7 @@ just
 just debug
 ```
 
-bulid library:
+build library:
 
 ```bash
 just release
