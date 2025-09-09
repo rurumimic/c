@@ -53,6 +53,10 @@ fn main() {
 
     unsafe {
         let tree = radixtree_ffi_init();
+        if tree.is_null() {
+            eprintln!("Failed to initialize radix tree");
+            return;
+        }
 
         let mut value: usize = 0;
         let mut ret: i32;
