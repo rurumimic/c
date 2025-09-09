@@ -5,12 +5,12 @@ struct Radixtree {
 
 unsafe extern "C" {
     fn radixtree_ffi_init() -> *mut Radixtree;
-    fn radixtree_ffi_free(tree: *mut Radixtree);
+    fn radixtree_ffi_free(tree: *mut Radixtree) -> i32;
     fn radixtree_ffi_insert(tree: *mut Radixtree, key: usize, value: usize) -> i32;
     fn radixtree_ffi_delete(tree: *mut Radixtree, key: usize, deleted_value: *mut usize) -> i32;
     fn radixtree_ffi_search(tree: *mut Radixtree, key: usize, found_value: *mut usize) -> i32;
-    fn radixtree_ffi_clear(tree: *mut Radixtree);
-    fn radixtree_ffi_prune(tree: *mut Radixtree);
+    fn radixtree_ffi_clear(tree: *mut Radixtree) -> i32;
+    fn radixtree_ffi_prune(tree: *mut Radixtree) -> i32;
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -94,12 +94,13 @@ fn main() {
             value
         );
 
-        radixtree_ffi_prune(tree);
-        println!("Prune tree");
+        let ret = radixtree_ffi_prune(tree);
+        println!("Prune tree: {}", RadixtreeStatus::from_errno(ret));
 
-        radixtree_ffi_clear(tree);
-        println!("Clear tree");
+        let ret = radixtree_ffi_clear(tree);
+        println!("Clear tree: {}", RadixtreeStatus::from_errno(ret));
 
-        radixtree_ffi_free(tree);
+        let ret = radixtree_ffi_free(tree);
+        println!("Free tree: {}", RadixtreeStatus::from_errno(ret));
     }
 }
