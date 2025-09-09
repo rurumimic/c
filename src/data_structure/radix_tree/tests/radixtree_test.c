@@ -46,7 +46,9 @@ static int teardown_tree(void *state) {
   // *state = cmocka state's pointer
   // **state = pointer's value
   test_fixture *fixture = *(test_fixture **)state;
-  radixtree_free(fixture->tree);
+  if (radixtree_free(fixture->tree) != RADIXTREE_OK) {
+    return -1;
+  }
   return 0;
 }
 
@@ -70,7 +72,7 @@ static void test_radixtree_init_and_free(void **state) {
   radixtree *tree = radixtree_init();
   assert_non_null(tree);
 
-  radixtree_free(tree);
+  assert_int_equal(radixtree_free(tree), RADIXTREE_OK);
 }
 
 static void test_scenario_crud(void **state) {

@@ -29,7 +29,9 @@ static inline int radixtree_ffi_errno(radixtree_status status) {
 
 radixtree *radixtree_ffi_init() { return radixtree_init(); }
 
-void radixtree_ffi_free(radixtree *tree) { radixtree_free(tree); }
+int radixtree_ffi_free(radixtree *tree) {
+  return radixtree_ffi_errno(radixtree_free(tree));
+}
 
 int radixtree_ffi_insert(radixtree *tree, uintptr_t key, size_t value) {
   return radixtree_ffi_errno(radixtree_insert(tree, key, value));

@@ -23,14 +23,20 @@ radixtree *radixtree_init() {
   return tree;
 }
 
-void radixtree_free(radixtree *tree) {
+radixtree_status radixtree_free(radixtree *tree) {
   if (!tree || !tree->root) {
-    return;
+    return RADIXTREE_ERR_INVAL;
   }
 
-  radixtree_clear(tree);
+  radixtree_status status = radixtree_clear(tree);
+  if (status != RADIXTREE_OK) {
+    return status;
+  }
+
   rdx_free(tree->root);
   rdx_free(tree);
+
+  return RADIXTREE_OK;
 }
 
 radixtree_status radixtree_insert(radixtree *tree, uintptr_t key,

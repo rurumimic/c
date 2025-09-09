@@ -9,7 +9,7 @@
 typedef struct radixtree radixtree;
 
 radixtree *radixtree_init();
-void radixtree_free(radixtree *tree);
+radixtree_status radixtree_free(radixtree *tree);
 radixtree_status radixtree_insert(radixtree *tree, uintptr_t key, size_t value);
 radixtree_status radixtree_delete(radixtree *tree, uintptr_t key,
                                   size_t *deleted_value);

@@ -242,6 +242,9 @@ int main(void) {
   prune_tree(tree);
   cleanup_remaining(tree, ptrs, ARRAY_LEN(ptrs));
 
-  radixtree_free(tree);
+  if (radixtree_free(tree) != RADIXTREE_OK) {
+    fprintf(stderr, C_RED "radixtree_free failed\n" C_RST);
+    return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 }
