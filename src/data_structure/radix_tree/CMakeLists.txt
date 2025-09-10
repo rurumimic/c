@@ -1,0 +1,39 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(radixtree VERSION 1.0)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED True)
+set(TARGET_GROUP debug CACHE STRING "Target group: [release|debug|test]")
+
+add_library(${PROJECT_NAME}
+  src/radixtree.c
+  src/radixtree_node.c
+  src/rdx_alloc.c
+)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC ${PROJECT_SOURCE_DIR}/include
+  PUBLIC ${PROJECT_SOURCE_DIR}/src
+)
+
+include(cmake/format.cmake)
+# include(cmake/compile_commands.cmake)
+
+if(TARGET_GROUP STREQUAL release)
+message(STATUS "Configuring for RELEASE mode")
+
+elseif(TARGET_GROUP STREQUAL debug)
+message(STATUS "Configuring for DEBUG mode")
+add_subdirectory(examples/tree)
+
+elseif(TARGET_GROUP STREQUAL test)
+message(STATUS "Configuring for TEST mode")
+enable_testing()
+find_package(cmocka REQUIRED)
+add_subdirectory(tests)
+
+else()
+message(FATAL_ERROR "Unknown TARGET_GROUP: ${TARGET_GROUP}")
+
+endif()
+

@@ -1,0 +1,127 @@
+#ifndef RADIXTREE_NODE_H
+#define RADIXTREE_NODE_H
+
+#include <radixtree_status.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+#define BITS_PER_LONG (sizeof(unsigned long) * 8)
+#define BITS_TO_LONGS(n) DIV_ROUND_UP((n), BITS_PER_LONG)
+
+#define RDX_MAP_SHIFT 6                      // 32 bits: 4, 64 bits: 6
+#define RDX_MAP_SIZE (1UL << RDX_MAP_SHIFT)  // 2^6 = 64 = 0100 0000
+
+#define RDX_MAP_MASK (RDX_MAP_SIZE - 1)                        // 63 = 0011 1111
+#define RDX_TAG_BITS 4                                         // 0000 ~ 1111
+#define RDX_TAG_MASK ((uintptr_t)((1UL << RDX_TAG_BITS) - 1))  // 1111
+
+#define RDX_INDEX_BITS (sizeof(uintptr_t) * 8 - RDX_TAG_BITS)  // 32: 28, 64: 60
+#define RDX_HEIGHT DIV_ROUND_UP(RDX_INDEX_BITS, RDX_MAP_SHIFT)  // 32: 7, 64: 10
+#define RDX_ROOT_SHIFT ((RDX_HEIGHT - 1) * RDX_MAP_SHIFT)  // 32: 24, 64: 54
+
+#define RDX_UINTPTR_MAX ((uintptr_t)(UINTPTR_MAX >> RDX_TAG_BITS))
+#define RDX_VALUE_MAX                                                 \
+  ((size_t)((RDX_UINTPTR_MAX < (uintptr_t)SIZE_MAX) ? RDX_UINTPTR_MAX \
+                                                    : (uintptr_t)SIZE_MAX))
+
+typedef enum {
+  RDX_TAG_EMPTY = 0,
+  RDX_TAG_VALUE = 1,
+  RDX_TAG_NODE = 2,
+} rdx_tag;
+
+typedef struct {
+  uintptr_t value;  // [ ... ptr][4bit tag]
+} rdx_tagged_ptr;
+
+typedef struct radixtree_node {
+  uint8_t shift;                  // level in the tree
+  uint8_t offset;                 // index in the parent node's values array
+  uint8_t count;                  // total count
+  struct radixtree_node* parent;  // to parent node
+  rdx_tagged_ptr values[RDX_MAP_SIZE];  // value or child nodes
+} radixtree_node;
+
+static inline rdx_tagged_ptr rdx_tag_ptr(uintptr_t ptr, rdx_tag tag) {
+  if (tag == RDX_TAG_EMPTY) {
+    return (rdx_tagged_ptr){.value = 0};
+  }
+
+  if (tag == RDX_TAG_VALUE) {
+    uintptr_t value = (ptr << RDX_TAG_BITS) | RDX_TAG_VALUE;
+    return (rdx_tagged_ptr){.value = value};
+  }
+
+  uintptr_t value = (ptr & ~RDX_TAG_MASK) | RDX_TAG_NODE;
+  return (rdx_tagged_ptr){.value = value};
+}
+
+static inline uintptr_t rdx_untag_ptr(rdx_tagged_ptr tp) {
+  if (tp.value == 0) {
+    return tp.value;
+  }
+
+  if ((tp.value & RDX_TAG_MASK) == RDX_TAG_VALUE) {
+    return (tp.value >> RDX_TAG_BITS);
+  }
+
+  return (tp.value & ~RDX_TAG_MASK);
+}
+
+static inline bool rdx_is_empty(rdx_tagged_ptr tp) { return tp.value == 0; }
+
+static inline bool rdx_is_value(rdx_tagged_ptr tp) {
+  return (tp.value & RDX_TAG_MASK) == RDX_TAG_VALUE;
+}
+
+static inline bool rdx_is_node(rdx_tagged_ptr tp) {
+  return (tp.value & RDX_TAG_MASK) == RDX_TAG_NODE;
+}
+
+radixtree_node* radixtree_node_init(uint8_t shift, uint8_t offset,
+                                    radixtree_node* parent);
+radixtree_status radixtree_node_free(radixtree_node* node);
+radixtree_status radixtree_node_prune(radixtree_node* node);
+radixtree_status radixtree_node_unlink(radixtree_node* node);
+
+/** for future use when implementing lock-free
+
+#define RDX_MAX_MARKS 1  // [tombstone, ...]
+#define RDX_MARK_LONGS BITS_TO_LONGS(RDX_MAP_SIZE)  // 32 bits: 2, 64 bits: 1
+
+typedef enum { RDX_MARK_TOMBSTONE = 0 } rdx_mark;
+
+typedef struct radixtree_node {
+  uint8_t shift;                  // level in the tree
+  uint8_t offset;                 // index in the parent node's values array
+  uint8_t count;                  // total count
+  struct radixtree_node* parent;  // to parent node
+  rdx_tagged_ptr values[RDX_MAP_SIZE];  // value or child nodes
+  unsigned long marks[RDX_MAX_MARKS][RDX_MARK_LONGS];
+} radixtree_node;
+
+static inline void rdx_set_mark(radixtree_node* node, rdx_mark mark,
+                                size_t index) {
+  const unsigned word = index / BITS_PER_LONG;
+  const unsigned bit = index % BITS_PER_LONG;
+  node->marks[mark][word] |= (1UL << bit);
+}
+
+static inline void rdx_clear_mark(radixtree_node* node, rdx_mark mark,
+                                  size_t index) {
+  const unsigned word = index / BITS_PER_LONG;
+  const unsigned bit = index % BITS_PER_LONG;
+  node->marks[mark][word] &= ~(1UL << bit);
+}
+
+static inline bool rdx_test_mark(const radixtree_node* node, rdx_mark mark,
+                                 size_t index) {
+  const unsigned word = index / BITS_PER_LONG;
+  const unsigned bit = index % BITS_PER_LONG;
+  return (node->marks[mark][word] & (1UL << bit)) != 0;
+}
+*/
+
+#endif  // RADIXTREE_NODE_H

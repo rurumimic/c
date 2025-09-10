@@ -1,0 +1,14 @@
+{
+    "cmake.useCMakePresets": "auto",
+    "files.associations": {
+        "**/*.h": "c",
+        "**/*.hpp": "cpp",
+        "**/*.hxx": "cpp",
+        "atomic": "c",
+        "cstdint": "c",
+        "cerrno": "c",
+        "cstdarg": "c",
+        "streambuf": "c",
+        "*.inc": "c"
+    }
+}
