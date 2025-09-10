@@ -52,7 +52,7 @@ just release
 ## Run Examples
 
 ```bash
-./build/debug/examples/example_tree
+./build/debug/examples/tree/example_tree
 ```
 
 ### valgrind
