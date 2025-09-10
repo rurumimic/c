@@ -29,7 +29,7 @@ static void test_max_align_size(void **state) {
   assert_true((max_align_size & (max_align_size - 1)) == 0);  // power of two
 }
 
-static void test_malloc_returns_8byte_aligned_memory(void **state) {
+static void test_malloc_returns_16bytes_aligned_memory(void **state) {
   (void)state; /* unused */
 
   void *ptr_1 = malloc(sizeof(char) * 1);
@@ -40,33 +40,34 @@ static void test_malloc_returns_8byte_aligned_memory(void **state) {
   // clang-format off
   /**
    * Max Align of: 16 bytes
-   * Address: 00000000 00000000 01011110 11010101 01100011 00100100 00010010 11110000
-   * & 0b111: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000111
-   *        = 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+   * addr ≡ 0 (mod 16)
+   *  Address: 00000000 00000000 01011110 11010101 01100011 00100100 00010010 11110000
+   * & 0b1111: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00001111
+   *         = 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
    *
-   * Address: 00000000 00000000 01011110 11010101 01100011 00100100 00010011 00010000
-   * & 0b111: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000111
-   *        = 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+   *  Address: 00000000 00000000 01011110 11010101 01100011 00100100 00010011 00010000
+   * & 0b1111: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00001111
+   *         = 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
    */
   // clang-format on
 
   // printf("Max Align of: %zu bytes\n", alignof(max_align_t));
   // printf("%p: ", (void *)address_1);
   // print_binary(address_1);
-  // printf("       & 0b111: ");
-  // print_binary(0b111);
+  // printf("       & 0b1111: ");
+  // print_binary(0b1111);
   // printf("              = ");
-  // print_binary(address_1 & 0b111);
+  // print_binary(address_1 & 0b1111);
 
   // printf("%p: ", (void *)address_2);
   // print_binary(address_2);
-  // printf("       & 0b111: ");
-  // print_binary(0b111);
+  // printf("       & 0b1111: ");
+  // print_binary(0b1111);
   // printf("              = ");
-  // print_binary(address_2 & 0b111);
+  // print_binary(address_2 & 0b1111);
 
-  assert_true((address_1 & 0b111) == 0);
-  assert_true((address_2 & 0b111) == 0);
+  assert_true((address_1 & 0b1111) == 0);
+  assert_true((address_2 & 0b1111) == 0);
 
   free(ptr_1);
   free(ptr_2);
@@ -75,7 +76,7 @@ static void test_malloc_returns_8byte_aligned_memory(void **state) {
 int main(void) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_max_align_size),
-      cmocka_unit_test(test_malloc_returns_8byte_aligned_memory),
+      cmocka_unit_test(test_malloc_returns_16bytes_aligned_memory),
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);
