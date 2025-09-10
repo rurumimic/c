@@ -1,9 +1,6 @@
 #include <radixtree.h>
 #include <radixtree_ffi.h>
 
-#include "radixtree_node.h"
-#include "rdx_alloc.h"
-
 static inline int radixtree_ffi_errno(radixtree_status status) {
   switch (status) {
     case RADIXTREE_OK:
