@@ -3,13 +3,15 @@
 
 typedef enum {
   RADIXTREE_OK = 0,
-  RADIXTREE_EXISTS,
-  RADIXTREE_NOTFOUND,
-  RADIXTREE_REPLACED,
-  RADIXTREE_ERR_NOMEM,
-  RADIXTREE_ERR_INVAL,
-  RADIXTREE_ERR_OVERFLOW,
-  RADIXTREE_ERR_UNDERFLOW,
+  RADIXTREE_EXISTS = 1,
+  RADIXTREE_NOTFOUND = 2,
+  RADIXTREE_REPLACED = 3,
+  RADIXTREE_ERR_NOMEM = -1,
+  RADIXTREE_ERR_INVAL = -2,
+  RADIXTREE_ERR_OVERFLOW = -3,
+  RADIXTREE_ERR_UNDERFLOW = -4,
 } radixtree_status;
+
+static inline int radixtree_status_to_code(radixtree_status status) { return (int)status; }
 
 #endif  // RADIXTREE_STATUS_H
